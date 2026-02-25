@@ -64,10 +64,10 @@ end
 
 % TODO: Implement manual 2D convolution using Sobel Operator(Gx and Gy)
 % output - Convolved image result (grayscale)
-
 function output = my_conv2(image, kernel, padding) %Add necessary input arguments
 
     image = double(image);
+    kernel_flipped = rot90(kernel, 2);
     
     [rows, cols] = size(image);
     [k_rows, k_cols] = size(kernel);
@@ -75,21 +75,19 @@ function output = my_conv2(image, kernel, padding) %Add necessary input argument
     
     image_padded = padarray(image, [pad pad], 0,"both");
 
-    [padRows,padCols] = size(image_padded);
+    [padRows,padCols] = size(image_padded)
     output = zeros(rows, cols);
     
-    %for i =1:rows
-    %    for j =1:cols
-    %        patch = image_padded(i:i+k_rows-1, j:j+k_cols-1);
-    %        output(i,j) = sum(sum(patch .* kernel_flipped));
-    %    end
-    %end
+    for i =1:rows
+        for j =1:cols
+            patch = image_padded(i:i+k_rows-1, j:j+k_cols-1);
+            output(i,j) = sum(sum(patch .* kernel_flipped));
+        end
+    end
 
     for i = 2:padRows-2
         for j = 2:padCols-2
-            patch = image_padded(i-pad:i+pad,j-pad:j+pad);
-            output(i-1,j-1) = sum(sum(patch .* kernel));
-        end 
-    end
+            patch = i
+
 
 end
