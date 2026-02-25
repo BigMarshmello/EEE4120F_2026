@@ -7,9 +7,15 @@
 function run_analysis()
     % TODO1:
     % Load all the sample images from the 'sample_images' folder
-    image = imread('sample_images/image_128x128.png');
-    disp(size(image));
-    image = rgb2gray(image);
+    %image = imread('sample_images/image_128x128.png');
+
+    image128 = imread('sample_images/image_128x128.png');
+    image256 = imread('sample_images/image_256x256.png');
+    image512 = imread('sample_images/image_512x512.png');
+    image1024 = imread('sample_images/image_1024x1024.png');
+    image2048 = imread('sample_images/image_2048x2048.png');
+
+    images = {image128,image256,image512,image1024,image2048};
     
     % TODO2:
     % Define edge detection kernels (Sobel kernel)
@@ -25,10 +31,14 @@ function run_analysis()
     %   e. Store results (image name, time_manual, time_builtin, speedup)
     %   f. Plot and compare results
     %   g. Visualise the edge detection results(Optional)
-    [result, elapsed_time] = inbuilt_conv2(image, Gx, Gy, 'same');
+
+
+    %{
+    temp = rgb2gray(image128);
+    [result, elapsed_time] = inbuilt_conv2(temp, Gx, Gy, 'same');
 
     tic
-    result_manual = my_conv2(image,Gx,Gy, 'same');
+    result_manual = my_conv2(temp,Gx,Gy, 'same');
     elapsed_time_manual =toc;
 
     fprintf('Elapsed Time for Inbuilt: %.6f\n', elapsed_time);
@@ -40,11 +50,77 @@ function run_analysis()
     fprintf("Returend Image Size for Inbuilt: %i X %i\n", Inbuilt_Size_x,Inbuilt_Size_y);
     fprintf("Returend Image Size for Manual: %i X %i\n", Manual_Size_x,Manual_Size_y);
 
+    imshow(result,[]);
+
     figure;
-    subplot(1,3,1); imshow(image); title('Original');
+    subplot(1,3,1); imshow(temp); title('Original');
     subplot(1,3,2); imshow(result, []); title('Edge Detection');
-    subplot(1,3,3); imshow(result_manual, []); title('Edge Detection 2');
+    %subplot(1,3,3); imshow(result_manual, []); title('Edge Detection 2');
     imshow(result, []);
+    %}
+   
+    N = 5;
+
+    file = fopen("results.txt","w");
+
+    for k = 1:numel(images)
+        times_manual = zeros(N,1);
+        times_inbuilt = zeros(N,1);
+        
+        image = images{k};
+        image = rgb2gray(image);
+        [x,y]=size(image);
+
+        %imshow(image)
+
+        average_manual = 0.0;
+        average_inbuilt = 0.0;
+
+        result1 = my_conv2(image,Gx,Gy,'same');
+
+        min_val = min(result1(:));
+        max_val = max(result1(:));
+
+        result1_scaled = (result1 - min_val) / (max_val - min_val);  % now in 0–1
+        result1_255 = uint8(result1_scaled * 255);                  % convert to 0–255 integers
+        %imshow(result1_255);
+
+        imwrite(result1_255,"image_results/Manual"+string(x)+".png");
+
+        for i = 1:N
+            tic
+            my_conv2(image,Gx,Gy,'same');
+            times_manual(i) = toc;
+        end
+
+        average_manual = mean(times_manual);
+        %================================================
+
+        [result2,] = inbuilt_conv2(image,Gx,Gy,'same');
+        
+        min_val = min(result2(:));
+        max_val = max(result2(:));
+
+        result2_scaled = (result2 - min_val) / (max_val - min_val);  % now in 0–1
+        result2_255 = uint8(result2_scaled * 255);                  % convert to 0–255 integers
+        %imshow(result2_255);
+
+        imwrite(result2_255,"image_results/Inbuilt"+string(x)+".png");
+
+        for i = 1:N
+            tic
+            [,temp]=inbuilt_conv2(image,Gx,Gy,'same');
+            times_inbuilt(i) = toc;
+        end
+    
+        average_inbuilt = mean(times_inbuilt);
+        
+        fprintf(file,"Size %d x %d\n",x,y);
+        fprintf(file,"Average Duration for Manual: %.6f\n",average_manual);
+        fprintf(file,"Average Duration for Inbuilt: %.6f\n\n", average_inbuilt);
+  
+    end
+    fclose(file);
     
     
     
