@@ -117,14 +117,12 @@ end
 
 % TODO: Use conv2 to perform 2D convolution
 % output - Convolved image result (grayscale)
-function [result, elapsed_time] = inbuilt_conv2(image, Gx, Gy, padding)%Add necessary input arguments
+function result = inbuilt_conv2(image, Gx, Gy, padding)%Add necessary input arguments
 
 image = double(image);
-tic
 Gx_result = conv2(image, Gx, padding);
 Gy_result = conv2(image, Gy, padding);
 result = sqrt(Gx_result.^2 + Gy_result.^2);
-elapsed_time = toc;
 
 end
 %% ========================================================================
@@ -140,7 +138,7 @@ function Result = my_conv2(image, kernelx, kernely, padding) %Add necessary inpu
     
     function output = convolve2d(image,kernel,padding) %function to perform the individual convolve
         image = double(image); %convert values to doubles
-        
+        kernel = rot90(kernel, 2); %con2 flips kernel therefore need manual to flip
         [rows, cols] = size(image);
         [k_rows, k_cols] = size(kernel);
     
