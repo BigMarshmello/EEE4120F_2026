@@ -1,0 +1,20 @@
+Size 128 x 128
+Average Duration for Manual: 0.016645
+Average Duration for Inbuilt: 0.000211
+
+Size 256 x 256
+Average Duration for Manual: 0.056639
+Average Duration for Inbuilt: 0.000776
+
+Size 512 x 512
+Average Duration for Manual: 0.226235
+Average Duration for Inbuilt: 0.001230
+
+Size 1024 x 1024
+Average Duration for Manual: 0.913649
+Average Duration for Inbuilt: 0.004421
+
+Size 2048 x 2048
+Average Duration for Manual: 3.672572
+Average Duration for Inbuilt: 0.018033
+

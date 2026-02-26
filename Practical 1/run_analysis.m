@@ -1,4 +1,4 @@
-% GROUP NUMBER:
+% GROUP NUMBER:7
 %
 % MEMBERS:
 %   - Alex Hillman, HLLALE010
@@ -31,33 +31,6 @@ function run_analysis()
     %   e. Store results (image name, time_manual, time_builtin, speedup)
     %   f. Plot and compare results
     %   g. Visualise the edge detection results(Optional)
-
-
-    %{
-    temp = rgb2gray(image128);
-    [result, elapsed_time] = inbuilt_conv2(temp, Gx, Gy, 'same');
-
-    tic
-    result_manual = my_conv2(temp,Gx,Gy, 'same');
-    elapsed_time_manual =toc;
-
-    fprintf('Elapsed Time for Inbuilt: %.6f\n', elapsed_time);
-    fprintf('Elapsed Time for Manual: %.6f\n', elapsed_time_manual);
-    
-    [Inbuilt_Size_x,Inbuilt_Size_y] = size(result);
-    [Manual_Size_x,Manual_Size_y] = size(result_manual);
-
-    fprintf("Returend Image Size for Inbuilt: %i X %i\n", Inbuilt_Size_x,Inbuilt_Size_y);
-    fprintf("Returend Image Size for Manual: %i X %i\n", Manual_Size_x,Manual_Size_y);
-
-    imshow(result,[]);
-
-    figure;
-    subplot(1,3,1); imshow(temp); title('Original');
-    subplot(1,3,2); imshow(result, []); title('Edge Detection');
-    %subplot(1,3,3); imshow(result_manual, []); title('Edge Detection 2');
-    imshow(result, []);
-    %}
    
     N = 5;
 
@@ -115,9 +88,11 @@ function run_analysis()
     
         average_inbuilt = mean(times_inbuilt);
         
+        speedup = average_manual/average_inbuilt;
         fprintf(file,"Size %d x %d\n",x,y);
         fprintf(file,"Average Duration for Manual: %.6f\n",average_manual);
         fprintf(file,"Average Duration for Inbuilt: %.6f\n\n", average_inbuilt);
+        fprintf(file,"Speedup: %.6f\n\n", speedup);
   
     end
     fclose(file);

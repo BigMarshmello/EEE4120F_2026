@@ -1,20 +1,30 @@
 Size 128 x 128
-Average Duration for Manual: 0.033773
-Average Duration for Inbuilt: 0.000289
+Average Duration for Manual: 0.015807
+Average Duration for Inbuilt: 0.000202
+
+Speedup: 78.078826
 
 Size 256 x 256
-Average Duration for Manual: 0.119097
-Average Duration for Inbuilt: 0.000358
+Average Duration for Manual: 0.058208
+Average Duration for Inbuilt: 0.000552
+
+Speedup: 105.446499
 
 Size 512 x 512
-Average Duration for Manual: 1.887973
-Average Duration for Inbuilt: 0.005593
+Average Duration for Manual: 0.231997
+Average Duration for Inbuilt: 0.001154
+
+Speedup: 200.964585
 
 Size 1024 x 1024
-Average Duration for Manual: 6.262282
-Average Duration for Inbuilt: 0.007721
+Average Duration for Manual: 0.902189
+Average Duration for Inbuilt: 0.004550
+
+Speedup: 198.304687
 
 Size 2048 x 2048
-Average Duration for Manual: 7.682941
-Average Duration for Inbuilt: 0.035491
+Average Duration for Manual: 3.626800
+Average Duration for Inbuilt: 0.019312
+
+Speedup: 187.799021
 
