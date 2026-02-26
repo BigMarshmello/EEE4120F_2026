@@ -1,103 +1,103 @@
+% =========================================================================
+% Practical 1: 2D Convolution Analysis
+% =========================================================================
+%
 % GROUP NUMBER:7
 %
 % MEMBERS:
 %   - Alex Hillman, HLLALE010
-%   - Joab Kloppers, KLPJOA002
+%   - Joab, Kloppers, KLPJOA002
 
+%% ========================================================================
+%  PART 3: Testing and Analysis
+%  ========================================================================
+%
+% Compare the performance of manual 2D convolution (my_conv2) with MATLAB's
+% built-in conv2 function (inbuilt_conv2)
 function run_analysis()
-    % TODO1:
-    % Load all the sample images from the 'sample_images' folder
-    %image = imread('sample_images/image_128x128.png');
-
-    image128 = imread('sample_images/image_128x128.png');
-    image256 = imread('sample_images/image_256x256.png');
-    image512 = imread('sample_images/image_512x512.png');
+    % TODO1: Load images
+    image128  = imread('sample_images/image_128x128.png');
+    image256  = imread('sample_images/image_256x256.png');
+    image512  = imread('sample_images/image_512x512.png');
     image1024 = imread('sample_images/image_1024x1024.png');
     image2048 = imread('sample_images/image_2048x2048.png');
 
     images = {image128,image256,image512,image1024,image2048};
-    
-    % TODO2:
-    % Define edge detection kernels (Sobel kernel)
+
+    % TODO2: Sobel kernels
     Gx = [-1 0 1; -2 0 2; -1 0 1];
     Gy = [-1 -2 -1; 0 0 0; 1 2 1];
-    
-    % TODO3:
-    % For each image, perform the following:
-    %   a. Measure execution time of my_conv2
-    %   b. Measure execution time of inbuilt_conv2
-    %   c. Compute speedup ratio
-    %   d. Verify output correctness (compare results)
-    %   e. Store results (image name, time_manual, time_builtin, speedup)
-    %   f. Plot and compare results
-    %   g. Visualise the edge detection results(Optional)
-   
-    N = 5;
 
+    N = 5;
     file = fopen("results.txt","w");
 
     for k = 1:numel(images)
-        times_manual = zeros(N,1);
+        times_manual  = zeros(N,1);
         times_inbuilt = zeros(N,1);
-        
+
         image = images{k};
         image = rgb2gray(image);
-        [x,y]=size(image);
+        image = double(image);            % ensure consistent datatype
+        [x,y] = size(image);
 
-        %imshow(image)
+        % ------------------- Warm-up (not timed) -------------------
+        my_conv2(image, Gx, Gy, 'same');
+        inbuilt_conv2(image, Gx, Gy, 'same');
 
-        average_manual = 0.0;
-        average_inbuilt = 0.0;
+        % ------------------- Compute results once -------------------
+        result1 = my_conv2(image, Gx, Gy, 'same');
+        result2 = inbuilt_conv2(image, Gx, Gy, 'same');  % FIX: only one output
 
-        result1 = my_conv2(image,Gx,Gy,'same');
-
-        min_val = min(result1(:));
-        max_val = max(result1(:));
-
-        result1_scaled = (result1 - min_val) / (max_val - min_val);  % now in 0–1
-        result1_255 = uint8(result1_scaled * 255);                  % convert to 0–255 integers
-        %imshow(result1_255);
-
-        imwrite(result1_255,"image_results/Manual"+string(x)+".png");
-
-        for i = 1:N
-            tic
-            my_conv2(image,Gx,Gy,'same');
-            times_manual(i) = toc;
+        % ------------------- Save result images -------------------
+        if ~exist("image_results", "dir")
+            mkdir("image_results");
         end
+        imwrite(uint8(255 * mat2gray(result1)), "image_results/Manual"  + string(x) + ".png");
+        imwrite(uint8(255 * mat2gray(result2)), "image_results/Inbuilt" + string(x) + ".png");
 
+        % a) Time manual
+        for i = 1:N
+            t0 = tic;
+            my_conv2(image, Gx, Gy, 'same');
+            times_manual(i) = toc(t0);
+        end
         average_manual = mean(times_manual);
+        std_manual     = std(times_manual);
 
-        [result2,] = inbuilt_conv2(image,Gx,Gy,'same');
-        
-        min_val = min(result2(:));
-        max_val = max(result2(:));
-
-        result2_scaled = (result2 - min_val) / (max_val - min_val);  % now in 0–1
-        result2_255 = uint8(result2_scaled * 255);                  % convert to 0–255 integers
-        %imshow(result2_255);
-
-        imwrite(result2_255,"image_results/Inbuilt"+string(x)+".png");
-
+        % b) Time inbuilt
         for i = 1:N
-            tic
-            [,temp]=inbuilt_conv2(image,Gx,Gy,'same');
-            times_inbuilt(i) = toc;
+            t0 = tic;
+            inbuilt_conv2(image, Gx, Gy, 'same');  
+            times_inbuilt(i) = toc(t0);
         end
-    
         average_inbuilt = mean(times_inbuilt);
-        
-        speedup = average_manual/average_inbuilt;
-        fprintf(file,"Size %d x %d\n",x,y);
-        fprintf(file,"Average Duration for Manual: %.6f\n",average_manual);
-        fprintf(file,"Average Duration for Inbuilt: %.6f\n\n", average_inbuilt);
-        fprintf(file,"Speedup: %.6f\n\n", speedup);
-  
+        std_inbuilt     = std(times_inbuilt);
+
+        % c) sp
+        speedup = average_manual / average_inbuilt;
+
+        % ------------------- (d) Correctness (manual - builtin) -------------------
+        diff = double(result1) - double(result2);
+        maxAbsDiff  = max(abs(diff(:)));
+        meanAbsDiff = mean(abs(diff(:)));
+
+        % ------------------- Print results -------------------
+        fprintf(file,"Size %d x %d\n", x, y);
+
+        fprintf(file,"Average Duration for Manual:  %.6f s\n", average_manual);
+        fprintf(file,"Std Dev Manual:               %.6f s\n", std_manual);
+
+        fprintf(file,"Average Duration for Inbuilt: %.6f s\n", average_inbuilt);
+        fprintf(file,"Std Dev Inbuilt:              %.6f s\n", std_inbuilt);
+
+        fprintf(file,"Speedup (manual/inbuilt): %.6f\n", speedup);
+
+        fprintf(file,"Difference (manual - builtin):\n");
+        fprintf(file,"  Max abs difference : %.6e\n", maxAbsDiff);
+        fprintf(file,"  Mean abs difference: %.6e\n\n", meanAbsDiff);
     end
+
     fclose(file);
-    
-    
-    
 end
 %% ========================================================================
 %  PART 2: Built-in 2D Convolution Implementation
@@ -107,14 +107,12 @@ end
 
 % TODO: Use conv2 to perform 2D convolution
 % output - Convolved image result (grayscale)
-function [result, elapsed_time] = inbuilt_conv2(image, Gx, Gy, padding)%Add necessary input arguments
+function result = inbuilt_conv2(image, Gx, Gy, padding)%Add necessary input arguments
 
 image = double(image);
-tic
 Gx_result = conv2(image, Gx, padding);
 Gy_result = conv2(image, Gy, padding);
 result = sqrt(Gx_result.^2 + Gy_result.^2);
-elapsed_time = toc;
 
 end
 %% ========================================================================
@@ -130,7 +128,7 @@ function Result = my_conv2(image, kernelx, kernely, padding) %Add necessary inpu
     
     function output = convolve2d(image,kernel,padding) %function to perform the individual convolve
         image = double(image); %convert values to doubles
-        
+        kernel = rot90(kernel, 2); %con2 flips kernel therefore need manual to flip
         [rows, cols] = size(image);
         [k_rows, k_cols] = size(kernel);
     

@@ -1,0 +1,35 @@
+Size 128 x 128
+Average Execution Time for Manual:  0.015780 s
+Std Dev Manual: 0.000208 s
+Average Execution Time for Inbuilt: 0.000185 s
+Std Dev Inbuilt: 0.000039 s
+Speedup (manual/inbuilt): 85.251441
+Average difference (manual - builtin): 0.000000
+Size 256 x 256
+Average Execution Time for Manual:  0.059705 s
+Std Dev Manual: 0.000947 s
+Average Execution Time for Inbuilt: 0.000452 s
+Std Dev Inbuilt: 0.000048 s
+Speedup (manual/inbuilt): 131.949169
+Average difference (manual - builtin): 0.000000
+Size 512 x 512
+Average Execution Time for Manual:  0.238516 s
+Std Dev Manual: 0.004902 s
+Average Execution Time for Inbuilt: 0.000701 s
+Std Dev Inbuilt: 0.000127 s
+Speedup (manual/inbuilt): 340.486427
+Average difference (manual - builtin): 0.000000
+Size 1024 x 1024
+Average Execution Time for Manual:  0.967338 s
+Std Dev Manual: 0.027965 s
+Average Execution Time for Inbuilt: 0.002251 s
+Std Dev Inbuilt: 0.000062 s
+Speedup (manual/inbuilt): 429.730516
+Average difference (manual - builtin): 0.000000
+Size 2048 x 2048
+Average Execution Time for Manual:  3.868834 s
+Std Dev Manual: 0.058917 s
+Average Execution Time for Inbuilt: 0.012408 s
+Std Dev Inbuilt: 0.000794 s
+Speedup (manual/inbuilt): 311.803084
+Average difference (manual - builtin): 0.000000
