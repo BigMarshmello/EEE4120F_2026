@@ -1,9 +1,19 @@
+% =========================================================================
+% Practical 1: 2D Convolution Analysis
+% =========================================================================
+%
 % GROUP NUMBER:7
 %
 % MEMBERS:
 %   - Alex Hillman, HLLALE010
-%   - Joab Kloppers, KLPJOA002
+%   - Joab, Kloppers, KLPJOA002
 
+%% ========================================================================
+%  PART 3: Testing and Analysis
+%  ========================================================================
+%
+% Compare the performance of manual 2D convolution (my_conv2) with MATLAB's
+% built-in conv2 function (inbuilt_conv2)
 function run_analysis()
     % TODO1:
     % Load all the sample images from the 'sample_images' folder
