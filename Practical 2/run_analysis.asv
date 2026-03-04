@@ -156,7 +156,7 @@ function mandelbrot_serial(max_iter,sizes) %Add necessary input arguments
 
     end
 
-    writematrix(Times,"Serial_Times.csv");
+    save(Times);
 end
 
 %% ========================================================================
