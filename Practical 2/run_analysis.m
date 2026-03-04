@@ -35,7 +35,7 @@ function run_analysis()
 
     %mandelbrot_plot(max_iterations,image_sizes);
     %mandelbrot_serial(max_iterations,image_sizes,10);
-    mandelbrot_parallel(max_iterations,image_sizes,2,1);
+    mandelbrot_parallel(max_iterations,image_sizes,10,12);
     
     %TODO: For each image size, perform the following:
     %   a. Measure execution time of mandelbrot_serial
@@ -188,6 +188,11 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
     result_row = 1;
 
     for c = 1:max_threads
+        
+        poolobj = gcp('nocreate');
+        if isempty(poolobj)
+            parpool('local',c);
+        end
     
         for i = 1:length(sizes)
             fprintf(image_Size_Names(i)+"\n");
@@ -205,7 +210,7 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
                 tic;
             
                 % --- Loop over every pixel ---
-                for row = 1:height
+                parfor row = 1:height
                     for col = 1:width
                         x0 = x_range(col);
                         y0 = y_range(row);
@@ -234,6 +239,8 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
             dataRows(result_row, :) = [{c}, {image_Size_Names(i)}, num2cell(Times)];
             result_row = result_row + 1;
         end
+
+        delete(gcp('nocreate'));
 
     end
     %writematrix(Times,"Serial_Times.csv");
