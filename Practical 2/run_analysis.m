@@ -34,7 +34,8 @@ function run_analysis()
     %fprintf("test")
 
     %mandelbrot_plot(max_iterations,image_sizes);
-    mandelbrot_serial(max_iterations,image_sizes);
+    %mandelbrot_serial(max_iterations,image_sizes,10);
+    mandelbrot_parallel(max_iterations,image_sizes,2,1);
     
     %TODO: For each image size, perform the following:
     %   a. Measure execution time of mandelbrot_serial
@@ -110,10 +111,10 @@ end
 %  ========================================================================`
 %
 %TODO: Implement serial Mandelbrot set computation function
-function mandelbrot_serial(max_iter,sizes) %Add necessary input arguments 
-        image_Size_Names = ["SVGA","HD","Full_HD","2K_Cinema","2K","4K","5K","8K"];
+function mandelbrot_serial(max_iter,sizes,iterations) %Add necessary input arguments 
+    image_Size_Names = ["SVGA","HD","Full_HD","2K_Cinema","2K","4K","5K","8K"];
 
-        Times = zeros(length(sizes));
+    Times = zeros(length(sizes),iterations);
     
     for i = 1:length(sizes)
         fprintf(image_Size_Names(i)+"\n");
@@ -126,33 +127,36 @@ function mandelbrot_serial(max_iter,sizes) %Add necessary input arguments
         % Preallocate output image (each pixel = iteration count)
         iter_map = zeros(height, width);
 
-        tic;
-    
-        % --- Loop over every pixel ---
-        for row = 1:height
-            for col = 1:width
-                x0 = x_range(col);
-                y0 = y_range(row);
-    
-                x = 0;
-                y = 0;
-                iteration = 0;
-    
-                % Core Mandelbrot loop (from your pseudocode)
-                while iteration < max_iter && (x^2 + y^2) <= 4
-                    x_next = x^2 - y^2 + x0;   % Note: NOT x^2+y^2 (see below)
-                    y_next = 2*x*y + y0;
-    
-                    x = x_next;
-                    y = y_next;
-                    iteration = iteration + 1;
-                end
-    
-                iter_map(row, col) = iteration;
-            end
-        end
+        for repeat = 1:iterations
 
-        Times(i) = toc;
+            tic;
+        
+            % --- Loop over every pixel ---
+            for row = 1:height
+                for col = 1:width
+                    x0 = x_range(col);
+                    y0 = y_range(row);
+        
+                    x = 0;
+                    y = 0;
+                    iteration = 0;
+        
+                    % Core Mandelbrot loop (from your pseudocode)
+                    while iteration < max_iter && (x^2 + y^2) <= 4
+                        x_next = x^2 - y^2 + x0;   % Note: NOT x^2+y^2 (see below)
+                        y_next = 2*x*y + y0;
+        
+                        x = x_next;
+                        y = y_next;
+                        iteration = iteration + 1;
+                    end
+        
+                    iter_map(row, col) = iteration;
+                end
+            end
+    
+            Times(i,repeat) = toc;
+        end
 
     end
 
@@ -164,7 +168,79 @@ end
 %  ========================================================================
 %
 %TODO: Implement parallel Mandelbrot set computation function
-function mandelbrot_parallel(varargin) %Add necessary input arguments 
+function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessary input arguments 
+
+
+
+    % Config
+    coreCounts = 1:max_threads;
+    image_Size_Names = ["SVGA","HD","Full_HD","2K_Cinema","2K","4K","5K","8K"];
+    
+    % Build headers
+    iterHeaders = arrayfun(@(i) sprintf('Iter_%d', i), 1:iterations, 'UniformOutput', false);
+    headers = [{'Cores', 'ImageSize'}, iterHeaders];
+    
+    % Preallocate rows
+    numRows = numel(coreCounts) * numel(image_Size_Names);
+    dataRows = cell(numRows, 2 + iterations);
+
+    Times = zeros(length(iterations));
+    result_row = 1;
+
+    for c = 1:max_threads
+    
+        for i = 1:length(sizes)
+            fprintf(image_Size_Names(i)+"\n");
+            width = sizes(i,1);
+            height = sizes(i,2);
+            % Define the region of the complex plane to view
+            x_range = linspace(-2.5, 1.0, width);   % Real axis
+            y_range = linspace(-1.2, 1.2, height);  % Imaginary axis
+        
+            % Preallocate output image (each pixel = iteration count)
+            iter_map = zeros(height, width);
+    
+            for repeat = 1:iterations
+    
+                tic;
+            
+                % --- Loop over every pixel ---
+                for row = 1:height
+                    for col = 1:width
+                        x0 = x_range(col);
+                        y0 = y_range(row);
+            
+                        x = 0;
+                        y = 0;
+                        iteration = 0;
+            
+                        % Core Mandelbrot loop (from your pseudocode)
+                        while iteration < max_iter && (x^2 + y^2) <= 4
+                            x_next = x^2 - y^2 + x0;   % Note: NOT x^2+y^2 (see below)
+                            y_next = 2*x*y + y0;
+            
+                            x = x_next;
+                            y = y_next;
+                            iteration = iteration + 1;
+                        end
+            
+                        iter_map(row, col) = iteration;
+                    end
+                end
+        
+                Times(repeat) = toc;
+            end
+            %fprintf("Core %d, Size %s, Time eg %f\n",c,image_Size_Names(i),Times(1));
+            dataRows(result_row, :) = [{c}, {image_Size_Names(i)}, num2cell(Times)];
+            result_row = result_row + 1;
+        end
+
+    end
+    %writematrix(Times,"Serial_Times.csv");
+    output = [headers; dataRows];
+    writecell(output, 'Parallel_benchmark_results.csv');
+
+    %{
     poolobj = gcp('nocreate');
     
      % Create a pool only if one doesn ' t exist
@@ -181,5 +257,6 @@ function mandelbrot_parallel(varargin) %Add necessary input arguments
 
 
     delete(gcp('nocreate'));
+    %}
 end
 
