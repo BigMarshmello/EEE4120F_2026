@@ -30,7 +30,7 @@ function run_analysis()
     max_iterations = 1000; 
 
     %mandelbrot_serial(max_iterations,image_sizes,10);
-    mandelbrot_parallel(max_iterations,image_sizes,10,12);
+    mandelbrot_parallel(max_iterations,image_sizes,10,6);
     %mandelbrot_GPU(max_iterations,image_sizes,3);
     
     %TODO: For each image size, perform the following:
@@ -213,7 +213,7 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
                 Times(repeat) = toc;
 
                 if repeat == iterations
-                    mandelbrot_plot(iter_map,i,max_iter,"Images_Parallel","_"+c+"cores");
+                    %mandelbrot_plot(iter_map,i,max_iter,"Images_Parallel","_"+c+"cores");
                 end
             end
             %fprintf("Core %d, Size %s, Time eg %f\n",c,image_Size_Names(i),Times(1));
