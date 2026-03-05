@@ -236,9 +236,19 @@ end
 
 
 function mandelbrot_GPU(max_iter, sizes, iterations)
-    image_Size_Names = ["SVGA","HD","Full_HD","2K_Cinema","2K","4K","5K","8K"];
+    image_Size_Names = ["800x600_SVGA","1280x720_HD","1920x1080_Full_HD","2048x1080_2K","2560x1440_QHD","3840x2160_4K","5120x2880_5K","7680x4320_8K"];
+    
+    % Build headers
+    iterHeaders = arrayfun(@(i) sprintf('Iter_%d', i), 1:iterations, 'UniformOutput', false);
+    headers = [{'ImageSize'}, iterHeaders];
+    
     Times = zeros(length(sizes), iterations);
 
+    % Preallocate rows
+    numRows = numel(image_Size_Names);
+    dataRows = cell(numRows, 1 + iterations);
+
+    result_row = 1;
     for i = 1:length(sizes)
         fprintf(image_Size_Names(i) + "\n");
         width  = sizes(i, 1);
@@ -277,7 +287,10 @@ function mandelbrot_GPU(max_iter, sizes, iterations)
                 mandelbrot_plot(iter_map_cpu, i, max_iter, "Images_GPU", "");
             end
         end
+        dataRows(result_row, :) = [{image_Size_Names(i)}, num2cell(Times)];
+        result_row = result_row + 1;
     end
 
-    writematrix(Times, "GPU_Times.csv");
+    output = [headers; dataRows];
+    writecell(output, "GPU_Times.csv");
 end
