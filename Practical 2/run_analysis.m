@@ -243,7 +243,6 @@ function mandelbrot_GPU(max_iter, sizes, iterations)
         fprintf(image_Size_Names(i) + "\n");
         width  = sizes(i, 1);
         height = sizes(i, 2);
-
         x_range_gpu = gpuArray(linspace(-2.5, 1.0, width));
         y_range_gpu = gpuArray(linspace(-1.2, 1.2, height));
         [X0, Y0] = meshgrid(x_range_gpu, y_range_gpu);
@@ -252,26 +251,30 @@ function mandelbrot_GPU(max_iter, sizes, iterations)
             X        = zeros(height, width, 'single', 'gpuArray');
             Y        = zeros(height, width, 'single', 'gpuArray');
             iter_map = zeros(height, width, 'single', 'gpuArray');
-        
+            escaped  = false(height, width, 'gpuArray');   % ← persistent latch
             tic;
+
             for k = 1:max_iter
-                mask = (X.^2 + Y.^2) <= 4;      % No masked writes
-                
+                % Check escape on CURRENT values, before any update
+                escaped     = escaped | (X.^2 + Y.^2 > 4);
+                still_inside = ~escaped;
+
                 X_new = X.^2 - Y.^2 + X0;
                 Y_new = 2.*X.*Y + Y0;
-        
-                % ✅ Update ALL pixels, then zero out escaped ones
-                X = X_new .* mask + X0.*~mask;
-                Y = Y_new .* mask + Y0 .* ~mask;
-                iter_map = iter_map + mask;    % Only increment non-escaped
+
+                % Only update pixels still inside
+                X = X_new .* still_inside + X .* escaped;
+                Y = Y_new .* still_inside + Y .* escaped;
+
+                iter_map = iter_map + still_inside;
             end
-        
+
             wait(gpuDevice);
             Times(i, repeat) = toc;
             iter_map_cpu = gather(iter_map);
 
             if repeat == iterations
-                mandelbrot_plot(iter_map_cpu,i,max_iter,"Images_GPU","");
+                mandelbrot_plot(iter_map_cpu, i, max_iter, "Images_GPU", "");
             end
         end
     end
