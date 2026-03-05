@@ -25,18 +25,13 @@ function run_analysis()
         [3840,2160], %4K UHD
         [5120,2880], %5K
         [7680,4320]  %8K UHD
-    ]
+    ];
 
     max_iterations = 1000; 
 
-    % Get number of workers available
-
-    %fprintf("test")
-
-    %mandelbrot_plot(max_iterations,image_sizes);
-    %mandelbrot_serial(max_iterations,image_sizes,10);
+    mandelbrot_serial(max_iterations,image_sizes,10);
     %mandelbrot_parallel(max_iterations,image_sizes,10,6);
-    mandelbrot_GPU(max_iterations,image_sizes,3);
+    %mandelbrot_GPU(max_iterations,image_sizes,3);
     
     %TODO: For each image size, perform the following:
     %   a. Measure execution time of mandelbrot_serial
@@ -51,45 +46,9 @@ end
 %  ========================================================================
 %
 % TODO: Implement Mandelbrot set plotting and saving function
-function mandelbrot_plot(max_iter,sizes) %Add necessary input arguments
-     
-    image_Size_Names = ["SVGA","HD","Full_HD","2K_Cinema","2K","4K","5K","8K"];
-    
-    for i = 1:length(sizes)
-        fprintf(image_Size_Names(i)+"\n");
-        width = sizes(i,1);
-        height = sizes(i,2);
-        % Define the region of the complex plane to view
-        x_range = linspace(-2.5, 1.0, width);   % Real axis
-        y_range = linspace(-1.2, 1.2, height);  % Imaginary axis
-    
-        % Preallocate output image (each pixel = iteration count)
-        iter_map = zeros(height, width);
-    
-        % --- Loop over every pixel ---
-        for row = 1:height
-            for col = 1:width
-                x0 = x_range(col);
-                y0 = y_range(row);
-    
-                x = 0;
-                y = 0;
-                iteration = 0;
-    
-                % Core Mandelbrot loop (from your pseudocode)
-                while iteration < max_iter && (x^2 + y^2) <= 4
-                    x_next = x^2 - y^2 + x0;   % Note: NOT x^2+y^2 (see below)
-                    y_next = 2*x*y + y0;
-    
-                    x = x_next;
-                    y = y_next;
-                    iteration = iteration + 1;
-                end
-    
-                iter_map(row, col) = iteration;
-            end
-        end
+function mandelbrot_plot(iter_map,size,max_iter) %Add necessary input arguments
 
+    image_Size_Names = ["800x600_SVGA","1280x720_HD","1920x1080_Full_HD","2048x1080_2K","2560x1440_QHD","3840x2160_4K","5120x2880_5K","7680x4320_8K"];
 
         % --- Save to file instead of displaying ---
         % Normalize iter_map to [0, 255] for image output
@@ -100,11 +59,11 @@ function mandelbrot_plot(max_iter,sizes) %Add necessary input arguments
         img_rgb = ind2rgb(img_normalized, cmap);
         
         % Save to file
-        filename = "mandelbrot_"+image_Size_Names(i)+".png";
+        filename = "Images_New/mandelbrot_"+image_Size_Names(size)+".png";
         imwrite(img_rgb,filename);
         fprintf("Written\n\n")
 
-    end
+    %end
 end
 
 %% ========================================================================
@@ -113,10 +72,19 @@ end
 %
 %TODO: Implement serial Mandelbrot set computation function
 function mandelbrot_serial(max_iter,sizes,iterations) %Add necessary input arguments 
-    image_Size_Names = ["SVGA","HD","Full_HD","2K_Cinema","2K","4K","5K","8K"];
+    image_Size_Names = ["800x600_SVGA","1280x720_HD","1920x1080_Full_HD","2048x1080_2K","2560x1440_QHD","3840x2160_4K","5120x2880_5K","7680x4320_8K"];
 
-    Times = zeros(length(sizes),iterations);
+    % Build headers
+    iterHeaders = arrayfun(@(i) sprintf('Iter_%d', i), 1:iterations, 'UniformOutput', false);
+    headers = [{'ImageSize'}, iterHeaders];
     
+    % Preallocate rows
+    numRows = numel(image_Size_Names);
+    dataRows = cell(numRows, 1 + iterations);
+
+    Times = zeros(length(iterations));
+    result_row = 1;
+
     for i = 1:length(sizes)
         fprintf(image_Size_Names(i)+"\n");
         width = sizes(i,1);
@@ -156,12 +124,19 @@ function mandelbrot_serial(max_iter,sizes,iterations) %Add necessary input argum
                 end
             end
     
-            Times(i,repeat) = toc;
+            Times(repeat) = toc;
+
+            if repeat == iterations
+                mandelbrot_plot(iter_map,i,max_iter);
+            end
+
         end
-
+        dataRows(result_row, :) = [{image_Size_Names(i)}, num2cell(Times)];
+        result_row = result_row + 1;
+        
     end
-
-    writematrix(Times,"Serial_Times.csv");
+    output = [headers; dataRows];
+    writecell(output, "Serial_Times.csv");
 end
 
 %% ========================================================================
@@ -175,7 +150,7 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
 
     % Config
     coreCounts = 1:max_threads;
-    image_Size_Names = ["SVGA","HD","Full_HD","2K_Cinema","2K","4K","5K","8K"];
+    image_Size_Names = ["800x600_SVGA","1280x720_HD","1920x1080_Full_HD","2048x1080_2K","2560x1440_QHD","3840x2160_4K","5120x2880_5K","7680x4320_8K"];
     
     % Build headers
     iterHeaders = arrayfun(@(i) sprintf('Iter_%d', i), 1:iterations, 'UniformOutput', false);
@@ -248,26 +223,7 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
     output = [headers; dataRows];
     writecell(output, 'Parallel_benchmark_results_PC.csv');
 
-    %{
-    poolobj = gcp('nocreate');
-    
-     % Create a pool only if one doesn ' t exist
-    if isempty(poolobj)
-       parpool('local',N);
-    end
-    
-    pool = gcp('nocreate');
-    if isempty(pool)
-        disp('No parallel pool active');
-    else
-        disp(['Parallel pool has ', num2str(pool.NumWorkers), ' workers']);
-    end
-
-
-    delete(gcp('nocreate'));
-    %}
 end
-
 
 
 
