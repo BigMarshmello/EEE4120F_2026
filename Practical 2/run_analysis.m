@@ -29,8 +29,8 @@ function run_analysis()
 
     max_iterations = 1000; 
 
-    mandelbrot_serial(max_iterations,image_sizes,10);
-    %mandelbrot_parallel(max_iterations,image_sizes,10,6);
+    %mandelbrot_serial(max_iterations,image_sizes,10);
+    mandelbrot_parallel(max_iterations,image_sizes,10,12);
     %mandelbrot_GPU(max_iterations,image_sizes,3);
     
     %TODO: For each image size, perform the following:
@@ -163,7 +163,7 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
     Times = zeros(length(iterations));
     result_row = 1;
 
-    for c = 1:max_threads
+    for c = 2:max_threads
         
         poolobj = gcp('nocreate');
         if isempty(poolobj)
@@ -221,7 +221,7 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
     end
     %writematrix(Times,"Serial_Times.csv");
     output = [headers; dataRows];
-    writecell(output, 'Parallel_benchmark_results_PC.csv');
+    writecell(output, 'Parallel_benchmark_results.csv');
 
 end
 
