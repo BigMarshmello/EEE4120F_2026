@@ -30,7 +30,7 @@ function run_analysis()
     max_iterations = 1000; 
 
     %mandelbrot_serial(max_iterations,image_sizes,10);
-    mandelbrot_parallel(max_iterations,image_sizes,10,6);
+    mandelbrot_parallel(max_iterations,image_sizes,10,12);
     %mandelbrot_GPU(max_iterations,image_sizes,3);
     
     %TODO: For each image size, perform the following:
