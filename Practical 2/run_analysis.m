@@ -30,8 +30,8 @@ function run_analysis()
     max_iterations = 1000; 
 
     %mandelbrot_serial(max_iterations,image_sizes,10);
-    %mandelbrot_parallel(max_iterations,image_sizes,10,6);
-    mandelbrot_GPU(max_iterations,image_sizes,3);
+    mandelbrot_parallel(max_iterations,image_sizes,10,6);
+    %mandelbrot_GPU(max_iterations,image_sizes,3);
     
     %TODO: For each image size, perform the following:
     %   a. Measure execution time of mandelbrot_serial
@@ -242,7 +242,7 @@ function mandelbrot_GPU(max_iter, sizes, iterations)
     iterHeaders = arrayfun(@(i) sprintf('Iter_%d', i), 1:iterations, 'UniformOutput', false);
     headers = [{'ImageSize'}, iterHeaders];
     
-    Times = zeros(length(sizes), iterations);
+    Times = zeros(length(iterations));
 
     % Preallocate rows
     numRows = numel(image_Size_Names);
@@ -280,7 +280,7 @@ function mandelbrot_GPU(max_iter, sizes, iterations)
             end
 
             wait(gpuDevice);
-            Times(i, repeat) = toc;
+            Times(repeat) = toc;
             iter_map_cpu = gather(iter_map);
 
             if repeat == iterations
