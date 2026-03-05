@@ -30,8 +30,8 @@ function run_analysis()
     max_iterations = 1000; 
 
     %mandelbrot_serial(max_iterations,image_sizes,10);
-    mandelbrot_parallel(max_iterations,image_sizes,10,12);
-    %mandelbrot_GPU(max_iterations,image_sizes,3);
+    %mandelbrot_parallel(max_iterations,image_sizes,10,6);
+    mandelbrot_GPU(max_iterations,image_sizes,3);
     
     %TODO: For each image size, perform the following:
     %   a. Measure execution time of mandelbrot_serial
@@ -46,20 +46,21 @@ end
 %  ========================================================================
 %
 % TODO: Implement Mandelbrot set plotting and saving function
-function mandelbrot_plot(iter_map,size,max_iter) %Add necessary input arguments
-
+function mandelbrot_plot(iter_map,size,max_iter,folder,other) %Add necessary input arguments
+    
     image_Size_Names = ["800x600_SVGA","1280x720_HD","1920x1080_Full_HD","2048x1080_2K","2560x1440_QHD","3840x2160_4K","5120x2880_5K","7680x4320_8K"];
 
         % --- Save to file instead of displaying ---
         % Normalize iter_map to [0, 255] for image output
-        img_normalized = uint8(255 * iter_map / max_iter);
+        %iter_map
+        img_normalized = uint8(255 * iter_map ./max_iter);
         
         % Apply a colormap (returns Nx3 RGB values)
         cmap = hot(256);
         img_rgb = ind2rgb(img_normalized, cmap);
         
         % Save to file
-        filename = "Images_New/mandelbrot_"+image_Size_Names(size)+".png";
+        filename = folder+"/mandelbrot_"+image_Size_Names(size)+other+".png";
         imwrite(img_rgb,filename);
         fprintf("Written\n\n")
 
@@ -127,7 +128,7 @@ function mandelbrot_serial(max_iter,sizes,iterations) %Add necessary input argum
             Times(repeat) = toc;
 
             if repeat == iterations
-                mandelbrot_plot(iter_map,i,max_iter);
+                mandelbrot_plot(iter_map,i,max_iter,"Images_Serial","");
             end
 
         end
@@ -210,6 +211,10 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
                 end
         
                 Times(repeat) = toc;
+
+                if repeat == iterations
+                    mandelbrot_plot(iter_map,i,max_iter,"Images_Parallel","_"+c+"cores");
+                end
             end
             %fprintf("Core %d, Size %s, Time eg %f\n",c,image_Size_Names(i),Times(1));
             dataRows(result_row, :) = [{c}, {image_Size_Names(i)}, num2cell(Times)];
@@ -221,7 +226,7 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
     end
     %writematrix(Times,"Serial_Times.csv");
     output = [headers; dataRows];
-    writecell(output, 'Parallel_benchmark_results.csv');
+    writecell(output, 'Parallel_benchmark_results_PC.csv');
 
 end
 
@@ -250,20 +255,24 @@ function mandelbrot_GPU(max_iter, sizes, iterations)
         
             tic;
             for k = 1:max_iter
-                escaped = (X.^2 + Y.^2) > 4;      % No masked writes
+                mask = (X.^2 + Y.^2) <= 4;      % No masked writes
                 
                 X_new = X.^2 - Y.^2 + X0;
                 Y_new = 2.*X.*Y + Y0;
         
                 % ✅ Update ALL pixels, then zero out escaped ones
-                X = X_new .* ~escaped;
-                Y = Y_new .* ~escaped;
-                iter_map = iter_map + ~escaped;    % Only increment non-escaped
+                X = X_new .* mask + X0.*~mask;
+                Y = Y_new .* mask + Y0 .* ~mask;
+                iter_map = iter_map + mask;    % Only increment non-escaped
             end
         
             wait(gpuDevice);
             Times(i, repeat) = toc;
             iter_map_cpu = gather(iter_map);
+
+            if repeat == iterations
+                mandelbrot_plot(iter_map_cpu,i,max_iter,"Images_GPU","");
+            end
         end
     end
 
