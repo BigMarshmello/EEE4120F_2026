@@ -29,8 +29,8 @@ function run_analysis()
 
     max_iterations = 1000; 
 
-    %mandelbrot_serial(max_iterations,image_sizes,10);
-    mandelbrot_parallel(max_iterations,image_sizes,10,12);
+    mandelbrot_serial(max_iterations,image_sizes,10);
+    %mandelbrot_parallel(max_iterations,image_sizes,10,12);
     %mandelbrot_GPU(max_iterations,image_sizes,3);
     
     %TODO: For each image size, perform the following:
@@ -128,7 +128,7 @@ function mandelbrot_serial(max_iter,sizes,iterations) %Add necessary input argum
             Times(repeat) = toc;
 
             if repeat == iterations
-                mandelbrot_plot(iter_map,i,max_iter,"Images_Serial","");
+                mandelbrot_plot(iter_map,i,max_iter,"Images_Serial","PC");
             end
 
         end
@@ -137,7 +137,7 @@ function mandelbrot_serial(max_iter,sizes,iterations) %Add necessary input argum
         
     end
     output = [headers; dataRows];
-    writecell(output, "Serial_Times.csv");
+    writecell(output, "Serial_Times_PC.csv");
 end
 
 %% ========================================================================
