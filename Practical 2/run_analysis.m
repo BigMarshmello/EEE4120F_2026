@@ -30,7 +30,7 @@ function run_analysis()
     max_iterations = 1000; 
 
     mandelbrot_serial(max_iterations,image_sizes,10);
-    %mandelbrot_parallel(max_iterations,image_sizes,10,6);
+    %mandelbrot_parallel(max_iterations,image_sizes,10,12);
     %mandelbrot_GPU(max_iterations,image_sizes,3);
     
     %TODO: For each image size, perform the following:
@@ -46,20 +46,21 @@ end
 %  ========================================================================
 %
 % TODO: Implement Mandelbrot set plotting and saving function
-function mandelbrot_plot(iter_map,size,max_iter) %Add necessary input arguments
-
+function mandelbrot_plot(iter_map,size,max_iter,folder,other) %Add necessary input arguments
+    
     image_Size_Names = ["800x600_SVGA","1280x720_HD","1920x1080_Full_HD","2048x1080_2K","2560x1440_QHD","3840x2160_4K","5120x2880_5K","7680x4320_8K"];
 
         % --- Save to file instead of displaying ---
         % Normalize iter_map to [0, 255] for image output
-        img_normalized = uint8(255 * iter_map / max_iter);
+        %iter_map
+        img_normalized = uint8(255 * iter_map ./max_iter);
         
         % Apply a colormap (returns Nx3 RGB values)
         cmap = hot(256);
         img_rgb = ind2rgb(img_normalized, cmap);
         
         % Save to file
-        filename = "Images_New/mandelbrot_"+image_Size_Names(size)+".png";
+        filename = folder+"/mandelbrot_"+image_Size_Names(size)+other+".png";
         imwrite(img_rgb,filename);
         fprintf("Written\n\n")
 
@@ -127,7 +128,7 @@ function mandelbrot_serial(max_iter,sizes,iterations) %Add necessary input argum
             Times(repeat) = toc;
 
             if repeat == iterations
-                mandelbrot_plot(iter_map,i,max_iter);
+                mandelbrot_plot(iter_map,i,max_iter,"Images_Serial","PC");
             end
 
         end
@@ -136,7 +137,7 @@ function mandelbrot_serial(max_iter,sizes,iterations) %Add necessary input argum
         
     end
     output = [headers; dataRows];
-    writecell(output, "Serial_Times.csv");
+    writecell(output, "Serial_Times_PC.csv");
 end
 
 %% ========================================================================
@@ -163,7 +164,7 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
     Times = zeros(length(iterations));
     result_row = 1;
 
-    for c = 1:max_threads
+    for c = 2:max_threads
         
         poolobj = gcp('nocreate');
         if isempty(poolobj)
@@ -210,6 +211,10 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
                 end
         
                 Times(repeat) = toc;
+
+                if repeat == iterations
+                    mandelbrot_plot(iter_map,i,max_iter,"Images_Parallel","_"+c+"cores");
+                end
             end
             %fprintf("Core %d, Size %s, Time eg %f\n",c,image_Size_Names(i),Times(1));
             dataRows(result_row, :) = [{c}, {image_Size_Names(i)}, num2cell(Times)];
@@ -221,7 +226,7 @@ function mandelbrot_parallel(max_iter,sizes,iterations,max_threads) %Add necessa
     end
     %writematrix(Times,"Serial_Times.csv");
     output = [headers; dataRows];
-    writecell(output, 'Parallel_benchmark_results_PC.csv');
+    writecell(output, 'Parallel_benchmark_results.csv');
 
 end
 
@@ -231,14 +236,23 @@ end
 
 
 function mandelbrot_GPU(max_iter, sizes, iterations)
-    image_Size_Names = ["SVGA","HD","Full_HD","2K_Cinema","2K","4K","5K","8K"];
-    Times = zeros(length(sizes), iterations);
+    image_Size_Names = ["800x600_SVGA","1280x720_HD","1920x1080_Full_HD","2048x1080_2K","2560x1440_QHD","3840x2160_4K","5120x2880_5K","7680x4320_8K"];
+    
+    % Build headers
+    iterHeaders = arrayfun(@(i) sprintf('Iter_%d', i), 1:iterations, 'UniformOutput', false);
+    headers = [{'ImageSize'}, iterHeaders];
+    
+    Times = zeros(length(iterations));
 
+    % Preallocate rows
+    numRows = numel(image_Size_Names);
+    dataRows = cell(numRows, 1 + iterations);
+
+    result_row = 1;
     for i = 1:length(sizes)
         fprintf(image_Size_Names(i) + "\n");
         width  = sizes(i, 1);
         height = sizes(i, 2);
-
         x_range_gpu = gpuArray(linspace(-2.5, 1.0, width));
         y_range_gpu = gpuArray(linspace(-1.2, 1.2, height));
         [X0, Y0] = meshgrid(x_range_gpu, y_range_gpu);
@@ -247,25 +261,36 @@ function mandelbrot_GPU(max_iter, sizes, iterations)
             X        = zeros(height, width, 'single', 'gpuArray');
             Y        = zeros(height, width, 'single', 'gpuArray');
             iter_map = zeros(height, width, 'single', 'gpuArray');
-        
+            escaped  = false(height, width, 'gpuArray');   % ← persistent latch
             tic;
+
             for k = 1:max_iter
-                escaped = (X.^2 + Y.^2) > 4;      % No masked writes
-                
+                % Check escape on CURRENT values, before any update
+                escaped     = escaped | (X.^2 + Y.^2 > 4);
+                still_inside = ~escaped;
+
                 X_new = X.^2 - Y.^2 + X0;
                 Y_new = 2.*X.*Y + Y0;
-        
-                % ✅ Update ALL pixels, then zero out escaped ones
-                X = X_new .* ~escaped;
-                Y = Y_new .* ~escaped;
-                iter_map = iter_map + ~escaped;    % Only increment non-escaped
+
+                % Only update pixels still inside
+                X = X_new .* still_inside + X .* escaped;
+                Y = Y_new .* still_inside + Y .* escaped;
+
+                iter_map = iter_map + still_inside;
             end
-        
+
             wait(gpuDevice);
-            Times(i, repeat) = toc;
+            Times(repeat) = toc;
             iter_map_cpu = gather(iter_map);
+
+            if repeat == iterations
+                mandelbrot_plot(iter_map_cpu, i, max_iter, "Images_GPU", "");
+            end
         end
+        dataRows(result_row, :) = [{image_Size_Names(i)}, num2cell(Times)];
+        result_row = result_row + 1;
     end
 
-    writematrix(Times, "GPU_Times.csv");
+    output = [headers; dataRows];
+    writecell(output, "GPU_Times.csv");
 end
