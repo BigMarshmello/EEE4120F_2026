@@ -1,2 +1,0 @@
-Minimum energy cost: 207
-Route: 1 10 4 9 6 5 8 3 2 7 
