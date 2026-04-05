@@ -75,7 +75,7 @@ void branch_and_bound(Node node, int depth)
 {
     //double time_start = gettime();
 
-    double current_best;
+    int current_best;
     #pragma omp atomic read
     current_best = best_cost;
 
@@ -85,22 +85,23 @@ void branch_and_bound(Node node, int depth)
     {
         int start    = node.path[0];
         int last     = node.path[node.path_len - 1];
-        double total = node.cost + adj[last][start];
+        int total = node.cost + adj[last][start];
 
         if (total < current_best) 
         {
             //#pragma omp critical
+            omp_set_lock(&global_update_lock);
             if (total < best_cost) 
             {
-                omp_set_lock(&global_update_lock);
+                
                 best_cost = total;
 
                 memcpy(best_path, node.path, n * sizeof(int));
-                omp_unset_lock(&global_update_lock);
-                //printf("[Thread %d] New best: %.2f\n",
-                  //      omp_get_thread_num(), adj);
+                
+                //printf("[Thread %d] New best: %i\n",omp_get_thread_num(), best_cost);
             
             }
+            omp_unset_lock(&global_update_lock);
         }
         return;
     }
@@ -118,13 +119,13 @@ void branch_and_bound(Node node, int depth)
         child.cost            += adj[last_city][next];
 
         // Pre-prune before spawning a task
-        double best_now;
+        int best_now;
         #pragma omp atomic read
         best_now = best_cost;
 
         if (child.cost >= best_now) continue;
 
-        if (depth < 3) {
+        if (depth < 4) {
             #pragma omp task firstprivate(child)
             branch_and_bound(child, depth + 1);
         } else {
@@ -219,31 +220,41 @@ int main(int argc, char **argv)
     if (!success_flag) return 1;
 
  
-
+    omp_set_num_threads(procs);
     printf("Running with %d processes/threads on a graph with %d nodes\n", procs, n);
 
     
     // TODO: compute solution to minimum energy consumption problem here and write to outfile
-    Node root       = {0};
-    root.path[0]    = 0;
-    root.path_len   = 1;
-    root.visited[0] = 1;
-    root.cost       = 0.0;
-    best_cost     = 9999;
-
-    omp_init_lock(&global_update_lock);
     
-    double t_start = gettime();
-    #pragma omp parallel
-    #pragma omp single
-    branch_and_bound(root, 0);
+    double t_av = 0;
+    double t_init_end = gettime();
+    omp_init_lock(&global_update_lock);
+  
 
-    double t_end = gettime();
+    for (int iter = 0; iter < 1000; iter++)
+    {
+        //printf("iteration %i\n",iter);
+        Node root       = {0};
+        root.path[0]    = 0;
+        root.path_len   = 1;
+        root.visited[0] = 1;
+        root.cost       = 0.0;
+        best_cost     = 9999;
+        
+        double t_start = gettime();
+        #pragma omp parallel
+        #pragma omp single
+        branch_and_bound(root, 0);
 
-    omp_destroy_lock(&global_update_lock);
+        double t_end = gettime();
 
-    double t_compute = t_end-t_start;
-    double t_init = t_start-t_init_start;
+        omp_destroy_lock(&global_update_lock);
+
+        t_av += t_end-t_start;
+    }
+
+    double t_compute = t_av/1000;
+    double t_init = t_init_end-t_init_start;
 
     printf("Tinit:  %.6f seconds\n", t_init);
     printf("Tcomp:  %.6f seconds\n", t_compute);

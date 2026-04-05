@@ -30,6 +30,7 @@
 int n; // If this is -1, it signals an error/exit
 int adj[MAX_N][MAX_N];
 
+
 // ============================================================================
 // Timer: returns time in seconds
 // ============================================================================
@@ -44,6 +45,28 @@ double gettime()
 // ============================================================================
 // Usage function
 // ============================================================================
+
+//=================================
+void master_testing(int Num_Workers)
+{
+    int data[Num_Workers-1];
+    for (int worker = 1; worker<Num_Workers; worker++)
+    {
+        data[worker-1] = worker*10;
+        MPI_Send(&data[worker-1],1,MPI_INT,worker,0,MPI_COMM_WORLD);
+    }
+
+
+}
+
+void worker_testing(int rank)
+{
+    int work_item;
+
+    MPI_Recv(&work_item,1,MPI_INT,0,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+
+    printf("The recieved item is %d\n",work_item);
+}
 
 void Usage(char *program) {
   printf("Usage: mpirun -np <num> %s [options]\n", program);
@@ -158,7 +181,14 @@ int main(int argc, char **argv)
     // TODO: compute solution to minimum energy consumption problem here and write to output file
     // Be careful on which process rank writes to the output file to avoid conflicts!
     
-    
+    if (rank == 0)
+    {
+        master_testing(n);
+    }
+    else
+    {
+        worker_testing(rank);
+    }
 
     
 
