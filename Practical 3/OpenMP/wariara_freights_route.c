@@ -71,7 +71,7 @@ void Usage(char *program) {
 // branch and bound algorithm
 // ============================================================================
 
-void branch_and_bound(Node node, int depth)
+void branch_and_bound(Node node, int depth, int cut_Depth)
 {
     //double time_start = gettime();
 
@@ -125,11 +125,11 @@ void branch_and_bound(Node node, int depth)
 
         if (child.cost >= best_now) continue;
 
-        if (depth < 4) {
+        if (depth < cut_Depth) {
             #pragma omp task firstprivate(child)
-            branch_and_bound(child, depth + 1);
+            branch_and_bound(child, depth + 1,cut_Depth);
         } else {
-            branch_and_bound(child, depth + 1);
+            branch_and_bound(child, depth + 1,cut_Depth);
         }
     }
 
@@ -231,8 +231,8 @@ int main(int argc, char **argv)
     omp_init_lock(&global_update_lock);
   
 
-    for (int iter = 0; iter < 1000; iter++)
-    {
+    //for (int iter = 0; iter < 1000; iter++)
+    //{
         //printf("iteration %i\n",iter);
         Node root       = {0};
         root.path[0]    = 0;
@@ -242,22 +242,27 @@ int main(int argc, char **argv)
         best_cost     = 9999;
         
         double t_start = gettime();
+        //int cut_Depth = (int)floor(log2(procs));
+        int cut_Depth = 2;
+
         #pragma omp parallel
         #pragma omp single
-        branch_and_bound(root, 0);
+        branch_and_bound(root, 0, cut_Depth);
 
         double t_end = gettime();
 
         omp_destroy_lock(&global_update_lock);
 
-        t_av += t_end-t_start;
-    }
+        //t_av += t_end-t_start;
+    //}
 
-    double t_compute = t_av/1000;
+    //double t_compute = t_av/1000;
+    double t_compute = t_end-t_start;
     double t_init = t_init_end-t_init_start;
 
     printf("Tinit:  %.6f seconds\n", t_init);
     printf("Tcomp:  %.6f seconds\n", t_compute);
+    //printf("Testing log %d\n",(int)floor(log2(10)));
     //printf("Ttotal: %.6f seconds\n", t_init + t_comp);
 
     fclose(outfile);
