@@ -1,0 +1,2 @@
+Best cost: 51
+Best path: 0 3 5 1 2 4 

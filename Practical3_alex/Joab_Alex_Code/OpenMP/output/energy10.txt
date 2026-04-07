@@ -1,0 +1,4 @@
+Best path: 1 10 4 9 6 5 8 3 2 7 
+Best cost: 207
+Tinit: 0.018915 seconds
+Tcomp: 0.020565 seconds
