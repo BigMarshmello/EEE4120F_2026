@@ -11,7 +11,7 @@
 # ============================================================
 
 # --- Defaults ---
-RUNS=1000
+RUNS=100
 MAX_NP=1
 SIZE=10
 FILEBASE="energy"
@@ -59,7 +59,7 @@ for ((np=1; np<=MAX_NP; np++)); do
   for ((i=1; i<=RUNS; i++)); do
 
     # Run the command and capture stdout
-    RAW_OUTPUT=$(make run NP="$np" ARGS="-i $INPUT -o $OUTPUT" 2>&1)
+    RAW_OUTPUT=$(make run ARGS="-p $np -i $INPUT -o $OUTPUT" 2>&1)
 
     # Parse Tinit and Tcomp from output
     TINIT=$(echo "$RAW_OUTPUT" | grep -oP 'Tinit:\s+\K[0-9]+\.[0-9]+')
