@@ -120,6 +120,18 @@ module GPR_tb;
         //       Suggested values: R0=0xA000, R1=0xB001, R2=0xC002, R3=0xD003,
         //                         R4=0xE004, R5=0xF005, R6=0x1006, R7=0x2007
 
+        for (i = 0; i<=7; i = i+1) begin
+            reg_write_en = 1'b1;
+            reg_write_dest = i;
+            reg_write_data = 16'hA000 + i;
+            @(posedge clk); #1;
+            reg_write_en = 1'b0;
+
+            reg_read_addr_1 = i; #2;
+            check16(reg_read_data_1, 16'hA000 + i, test_id);
+            test_id = test_id +1;
+        end
+
 
         // ------------------------------------------------------------------
         // TEST GROUP 2: Write with reg_write_en = 0 must NOT change register

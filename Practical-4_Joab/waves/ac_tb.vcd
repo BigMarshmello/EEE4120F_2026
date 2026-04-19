@@ -1,0 +1,44 @@
+$date
+	Sun Apr 19 16:24:50 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module ALU_Control_tb $end
+$var wire 3 ! ALU_Cnt [2:0] $end
+$var reg 2 " ALUOp [1:0] $end
+$var reg 4 # Opcode [3:0] $end
+$var integer 32 $ fail_count [31:0] $end
+$var integer 32 % test_id [31:0] $end
+$scope module uut $end
+$var wire 2 & ALUOp [1:0] $end
+$var wire 4 ' Opcode [3:0] $end
+$var reg 3 ( ALU_Cnt [2:0] $end
+$upscope $end
+$scope task check_cnt $end
+$var reg 3 ) expected [2:0] $end
+$var reg 3 * got [2:0] $end
+$var reg 64 + id [63:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+bx +
+bx *
+bx )
+bx (
+bx '
+bx &
+b1 %
+b0 $
+bx #
+bx "
+bx !
+$end

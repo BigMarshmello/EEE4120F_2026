@@ -2,10 +2,10 @@
 // Practical 4: StarCore-1 — Single-Cycle Processor in Verilog
 // =========================================================================
 //
-// GROUP NUMBER:
+// GROUP NUMBER: 7
 //
 // MEMBERS:
-//   - Member 1 Name, Student Number
+//   - Member 1 Joab Gray Kloppers, KLPJOA002
 //   - Member 2 Name, Student Number
 
 // File        : InstructionMemory.v
@@ -32,6 +32,7 @@ module InstructionMemory (
     //
     //       reg [`COL-1:0] memory [`ROW_I-1:0];
     // -------------------------------------------------------------------------
+    reg [`COL-1:0] memory [`ROW_I-1:0];
 
 
     // -------------------------------------------------------------------------
@@ -48,6 +49,9 @@ module InstructionMemory (
     //           PC=0x0002 -> rom_addr=1
     //           PC=0x0004 -> rom_addr=2   ... and so on.
     // -------------------------------------------------------------------------
+    wire [3:0] rom_addr = pc[4:1];
+
+
 
 
     // -------------------------------------------------------------------------
@@ -63,6 +67,9 @@ module InstructionMemory (
     //       end indices in the array to fill. Adjust if your program is longer.
     // -------------------------------------------------------------------------
 
+    initial begin
+        $readmemb("test.prog",memory,0,14);
+    end
 
     // -------------------------------------------------------------------------
     // TODO: Drive the instruction output with a continuous assignment.
@@ -70,6 +77,7 @@ module InstructionMemory (
     //
     //       assign instruction = memory[rom_addr];
     // -------------------------------------------------------------------------
+    assign instruction = memory[rom_addr];
 
 
 endmodule

@@ -64,15 +64,15 @@ module ALU (
     // -------------------------------------------------------------------------
     always @(*) begin
         case (alu_control)
-            3'b000 result = a+b;
-            3'b001 result = a-b;
-            3'b010 result = ~a;
-            3'b011 result = a << b[3:0];
-            3'b100 result = a >> b[3:0];
-            3'b101 result = a&b;
-            3'b110 result = a | b;
-            3'b111 result = (a < b) ? 16'd1 : 16'd0 (unsigned);
-            default result = a+b;
+            3'b000: result = a+b;
+            3'b001: result = a-b;
+            3'b010: result = ~a;
+            3'b011: result = a << b[3:0];
+            3'b100: result = a >> b[3:0];
+            3'b101: result = a&b;
+            3'b110: result = a | b;
+            3'b111: result = (a < b) ? 16'd1 : 16'd0;
+            default: result = a+b;
         endcase
     end
 

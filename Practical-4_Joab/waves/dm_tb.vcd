@@ -1,0 +1,45 @@
+$date
+	Sun Apr 19 16:24:50 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module DataMemory_tb $end
+$var wire 16 ! mem_read_data [15:0] $end
+$var reg 1 " clk $end
+$var reg 16 # mem_access_addr [15:0] $end
+$var reg 1 $ mem_read $end
+$var reg 16 % mem_write_data [15:0] $end
+$var reg 1 & mem_write_en $end
+$var integer 32 ' fail_count [31:0] $end
+$var integer 32 ( test_id [31:0] $end
+$scope module uut $end
+$var wire 1 " clk $end
+$var wire 16 ) mem_access_addr [15:0] $end
+$var wire 1 $ mem_read $end
+$var wire 16 * mem_read_data [15:0] $end
+$var wire 16 + mem_write_data [15:0] $end
+$var wire 1 & mem_write_en $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+b0 +
+bz *
+b0 )
+b1 (
+b0 '
+0&
+b0 %
+0$
+b0 #
+0"
+bz !
+$end
