@@ -42,6 +42,9 @@ module DataMemory_tb;
 
     integer fail_count;
     integer test_id;
+    integer i;
+
+    reg [15:0] expected [0:7];
 
     initial begin
         fail_count      = 0;
@@ -50,6 +53,16 @@ module DataMemory_tb;
         mem_read        = 1'b0;
         mem_access_addr = 16'd0;
         mem_write_data  = 16'd0;
+
+        expected[0]=0000000000000001;
+        expected[1]=0000000000000010;
+        expected[2]=0000000000000011;
+        expected[3]=0000000000000100;
+        expected[4]=0000000000000101;
+        expected[5]=0000000000000110;
+        expected[6]=0000000000000111;
+        expected[7]=0000000000001000;
+
 
         $display("=== DataMemory Testbench ===");
 
@@ -73,6 +86,20 @@ module DataMemory_tb;
         //           $display("PASS [T%0d]", test_id);
         //       test_id = test_id + 1;
 
+        
+        for(i = 0; i<=7; i = i +1) begin
+            mem_read = 1'b1;
+            mem_access_addr = 16'd0; #5;
+            if (mem_read_data !== expected[i])
+                $display("FAIL [T%0d]: addr=%0d got=0x%h exp=%x", test_id, i, mem_read_data, expected[i]);
+            else
+                $display("PASS [T%0d]", test_id);
+            test_id = test_id + 1;
+            mem_read = 1'b0;
+        end
+        
+
+
 
         // ------------------------------------------------------------------
         // TEST GROUP 2: Write new values to all 8 locations, then read back
@@ -95,6 +122,24 @@ module DataMemory_tb;
         //       if (mem_read_data !== 16'hABCD) ...
         //       test_id = test_id + 1;
 
+        for(i = 0; i<=7; i = i+1) begin
+            mem_write_en = 1'b1;
+            mem_access_addr = i;
+            mem_write_data = 16'hA000 + i;
+            @(posedge clk); #1;
+            mem_write_en = 1'b0;
+
+            mem_read = 1'b1;
+            mem_access_addr = i; #5;
+            if (mem_read_data !== 16'hA000 +i)
+                $display("FAIL [T%0d]: addr=%0d got=0x%h exp=%x", test_id, i, mem_read_data,16'hA000 +i);
+            else
+                $display("PASS [T%0d]", test_id);
+            test_id = test_id + 1;
+            mem_read = 1'b0;
+
+        end
+
 
         // ------------------------------------------------------------------
         // TEST GROUP 3: mem_read = 0 must produce 16'd0 output
@@ -112,6 +157,14 @@ module DataMemory_tb;
         //           $display("PASS [T%0d]: output = 0 when mem_read=0", test_id);
         //       test_id = test_id + 1;
 
+        mem_read = 1'b0;
+        mem_access_addr = 16'd0; #5;
+        if (mem_read_data !== 16'd0)
+            $display("FAIL [T%0d]: mem_read=0 but output=%h", test_id, mem_read_data);
+        else
+            $display("PASS [T%0d]: output = 0 when mem_read=0", test_id);
+        test_id = test_id + 1;
+
 
         // ------------------------------------------------------------------
         // TEST GROUP 4: Write then immediately read on the next cycle
@@ -120,6 +173,20 @@ module DataMemory_tb;
 
         // TODO: Write to address 3, then on the very next cycle read back
         //       from address 3 and confirm the new value is returned.
+
+        mem_write_en = 1'b1;
+        mem_read = 1'b1;
+        mem_access_addr = 16'd3;
+        mem_write_data = 16'hF0F0;
+        @(posedge clk); #1;
+
+        if (mem_read_data !== 16'hF0F0)
+            $display("FAIL [T%0d]: addr=3 got=0x%h exp=0xF0F0", test_id, mem_read_data);
+        else
+            $display("PASS [T%0d]", test_id);
+        test_id = test_id + 1;
+        mem_read = 1'b0;
+        mem_write_en = 1'b0;
 
 
         // ------------------------------------------------------------------
@@ -130,6 +197,19 @@ module DataMemory_tb;
         // TODO: Assert mem_write_en=0, clock one cycle, then read and confirm
         //       the previous value is unchanged.
 
+        mem_write_en = 1'b0;
+        mem_access_addr = 16'd3;
+        mem_write_data = 16'h1010;
+        @(posedge clk); #1;
+
+        mem_read = 1'b1;
+        if (mem_read_data !== 16'hF0F0)
+            $display("FAIL [T%0d]: addr=3 got=0x%h exp=0xF0F0", test_id, mem_read_data);
+        else
+            $display("PASS [T%0d]", test_id);
+        test_id = test_id + 1;
+        mem_read = 1'b0;
+    
 
         $display("");
         if (fail_count == 0)
