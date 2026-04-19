@@ -2,10 +2,10 @@
 // Practical 4: StarCore-1 — Single-Cycle Processor in Verilog
 // =========================================================================
 //
-// GROUP NUMBER:
+// GROUP NUMBER:7
 //
 // MEMBERS:
-//   - Member 1 Name, Student Number
+//   - Member 1 Joab Gray Kloppers, KLPJOA002
 //   - Member 2 Name, Student Number
 
 // File        : ALU.v
@@ -35,6 +35,7 @@ module ALU (
     //
     //       assign zero = ...;
     // -------------------------------------------------------------------------
+    assign zero = result == 16'd0;
 
     // -------------------------------------------------------------------------
     // TODO: Implement the ALU operations using a combinational always block.
@@ -61,6 +62,20 @@ module ALU (
     //       treats reg/wire values as unsigned by default. This is correct
     //       for the StarCore ISA.
     // -------------------------------------------------------------------------
+    always @(*) begin
+        case (alu_control)
+            3'b000 result = a+b;
+            3'b001 result = a-b;
+            3'b010 result = ~a;
+            3'b011 result = a << b[3:0];
+            3'b100 result = a >> b[3:0];
+            3'b101 result = a&b;
+            3'b110 result = a | b;
+            3'b111 result = (a < b) ? 16'd1 : 16'd0 (unsigned);
+            default result = a+b;
+        endcase
+    end
+
 
 
 endmodule

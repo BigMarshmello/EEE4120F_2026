@@ -2,10 +2,10 @@
 // Practical 4: StarCore-1 — Single-Cycle Processor in Verilog
 // =========================================================================
 //
-// GROUP NUMBER:
+// GROUP NUMBER:7
 //
 // MEMBERS:
-//   - Member 1 Name, Student Number
+//   - Member 1 Joab Gray Kloppers, KLPJOA002
 //   - Member 2 Name, Student Number
 
 // File        : Parameter.v
