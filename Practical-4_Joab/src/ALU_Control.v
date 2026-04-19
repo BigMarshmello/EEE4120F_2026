@@ -2,10 +2,10 @@
 // Practical 4: StarCore-1 — Single-Cycle Processor in Verilog
 // =========================================================================
 //
-// GROUP NUMBER:
+// GROUP NUMBER: 7
 //
 // MEMBERS:
-//   - Member 1 Name, Student Number
+//   - Member 1 Joab Gray Kloppers, KLPJOA002
 //   - Member 2 Name, Student Number
 
 // File        : ALU_Control.v
@@ -66,6 +66,24 @@ module ALU_Control (
     //       (0, 1, X, or Z). This correctly encodes don't-care bits for the
     //       opcode field when ALUOp selects memory or branch mode.
     // -------------------------------------------------------------------------
+    wire [5:0] control_in;
+    assign control_in = {ALUOp,Opcode};
+
+    always @(*) begin
+        casex (control_in)
+            6'b10xxxx : ALU_Cnt = 3'b000;
+            6'b01xxxx : ALU_Cnt = 3'b001;
+            6'b000010 : ALU_Cnt = 3'b000;
+            6'b000011 : ALU_Cnt = 3'b001;
+            6'b000100 : ALU_Cnt = 3'b010;
+            6'b000101 : ALU_Cnt = 3'b011;
+            6'b000110 : ALU_Cnt = 3'b100;
+            6'b000111 : ALU_Cnt = 3'b101;
+            6'b001000 : ALU_Cnt = 3'b110;
+            6'b001001 : ALU_Cnt = 3'b111;
+            default : ALU_Cnt = 3'b000;
+        endcase
+    end
 
 
 endmodule

@@ -54,14 +54,14 @@ module DataMemory_tb;
         mem_access_addr = 16'd0;
         mem_write_data  = 16'd0;
 
-        expected[0]=0000000000000001;
-        expected[1]=0000000000000010;
-        expected[2]=0000000000000011;
-        expected[3]=0000000000000100;
-        expected[4]=0000000000000101;
-        expected[5]=0000000000000110;
-        expected[6]=0000000000000111;
-        expected[7]=0000000000001000;
+        expected[0]=16'b0000000000000001;
+        expected[1]=16'b0000000000000010;
+        expected[2]=16'b0000000000000011;
+        expected[3]=16'b0000000000000100;
+        expected[4]=16'b0000000000000101;
+        expected[5]=16'b0000000000000110;
+        expected[6]=16'b0000000000000111;
+        expected[7]=16'b0000000000001000;
 
 
         $display("=== DataMemory Testbench ===");
@@ -89,10 +89,11 @@ module DataMemory_tb;
         
         for(i = 0; i<=7; i = i +1) begin
             mem_read = 1'b1;
-            mem_access_addr = 16'd0; #5;
-            if (mem_read_data !== expected[i])
+            mem_access_addr = i; #5;
+            if (mem_read_data !== expected[i]) begin
                 $display("FAIL [T%0d]: addr=%0d got=0x%h exp=%x", test_id, i, mem_read_data, expected[i]);
-            else
+                fail_count = fail_count + 1;
+            end else
                 $display("PASS [T%0d]", test_id);
             test_id = test_id + 1;
             mem_read = 1'b0;
@@ -131,9 +132,10 @@ module DataMemory_tb;
 
             mem_read = 1'b1;
             mem_access_addr = i; #5;
-            if (mem_read_data !== 16'hA000 +i)
+            if (mem_read_data !== 16'hA000 +i) begin 
                 $display("FAIL [T%0d]: addr=%0d got=0x%h exp=%x", test_id, i, mem_read_data,16'hA000 +i);
-            else
+                fail_count = fail_count + 1;
+            end else
                 $display("PASS [T%0d]", test_id);
             test_id = test_id + 1;
             mem_read = 1'b0;
@@ -159,9 +161,10 @@ module DataMemory_tb;
 
         mem_read = 1'b0;
         mem_access_addr = 16'd0; #5;
-        if (mem_read_data !== 16'd0)
+        if (mem_read_data !== 16'd0) begin 
             $display("FAIL [T%0d]: mem_read=0 but output=%h", test_id, mem_read_data);
-        else
+            fail_count = fail_count + 1;
+        end else
             $display("PASS [T%0d]: output = 0 when mem_read=0", test_id);
         test_id = test_id + 1;
 
@@ -180,9 +183,10 @@ module DataMemory_tb;
         mem_write_data = 16'hF0F0;
         @(posedge clk); #1;
 
-        if (mem_read_data !== 16'hF0F0)
+        if (mem_read_data !== 16'hF0F0) begin
             $display("FAIL [T%0d]: addr=3 got=0x%h exp=0xF0F0", test_id, mem_read_data);
-        else
+            fail_count = fail_count + 1;
+        end else
             $display("PASS [T%0d]", test_id);
         test_id = test_id + 1;
         mem_read = 1'b0;
@@ -202,10 +206,11 @@ module DataMemory_tb;
         mem_write_data = 16'h1010;
         @(posedge clk); #1;
 
-        mem_read = 1'b1;
-        if (mem_read_data !== 16'hF0F0)
+        mem_read = 1'b1; #5;
+        if (mem_read_data !== 16'hF0F0) begin
             $display("FAIL [T%0d]: addr=3 got=0x%h exp=0xF0F0", test_id, mem_read_data);
-        else
+            fail_count = fail_count + 1;
+        end else
             $display("PASS [T%0d]", test_id);
         test_id = test_id + 1;
         mem_read = 1'b0;

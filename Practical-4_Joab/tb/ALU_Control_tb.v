@@ -66,6 +66,12 @@ module ALU_Control_tb;
         //       ALUOp=2'b10; Opcode=4'hF; #10;
         //       check_cnt(ALU_Cnt, 3'b000, test_id); test_id=test_id+1;
 
+        ALUOp = 2'b10; Opcode = 4'h0; #10;
+        check_cnt(ALU_Cnt,3'b000,test_id);
+
+        ALUOp = 2'b10; Opcode = 4'hF; #10;
+        check_cnt(ALU_Cnt,3'b000,test_id);
+
 
         // ------------------------------------------------------------------
         // ALUOp = 01 (branch) — always SUB regardless of opcode
