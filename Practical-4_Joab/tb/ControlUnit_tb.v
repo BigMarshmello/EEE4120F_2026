@@ -97,7 +97,7 @@ module ControlUnit_tb;
         // Truth table columns (from Section 3.3 of the manual):
         // Instr    | RegDst | ALUSrc | MemToReg | RegWrite | MemRd | MemWr | Branch | ALUOp | Jump
         // LD       |   0    |   1    |    1     |    1     |   1   |   0   |   0    |  10   |  0
-        // ST       |   0    |   1    |    0     |    0     |   0   |   1   |   0    |  10   |  0
+        // ST       |   0    |   1    |    0     |    0      |   0   |   1   |   0    |  10   |  0
         // R-type   |   1    |   0    |    0     |    1     |   0   |   0   |   0    |  00   |  0
         // BEQ      |   0    |   0    |    0     |    0     |   0   |   0   | beq=1  |  01   |  0
         // BNE      |   0    |   0    |    0     |    0     |   0   |   0   | bne=1  |  01   |  0
@@ -130,6 +130,64 @@ module ControlUnit_tb;
         //       NOTE on Branch: the manual's 'Branch' column maps to beq=1
         //       for BEQ and bne=1 for BNE. Both beq and bne are 0 for JMP.
         // ------------------------------------------------------------------
+
+        opcode = 4'b0000; #10;
+        check_ctrl(2'b10, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b1, 1'b0, 1'b1, 1'b1, test_id);
+        test_id = test_id + 1;
+
+        opcode = 4'b0001; #10;
+        check_ctrl(2'b10, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b0, test_id);
+        test_id = test_id + 1;
+
+        //R-Type
+        opcode = 4'b0010; #10;
+        check_ctrl(2'b00, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b1, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b0011; #10;
+        check_ctrl(2'b00, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b1, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b0100; #10;
+        check_ctrl(2'b00, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b1, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b0101; #10;
+        check_ctrl(2'b00, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b1, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b0110; #10;
+        check_ctrl(2'b00, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b1, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b0111; #10;
+        check_ctrl(2'b00, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b1, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b100; #10;
+        check_ctrl(2'b00, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b1, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b1001; #10;
+        check_ctrl(2'b00, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b1, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b1010; #10;
+        check_ctrl(2'b00, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b1011; #10;
+        check_ctrl(2'b01, 1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b1100; #10;
+        check_ctrl(2'b01, 1'b0, 1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, test_id);
+        test_id = test_id +1 ;
+
+        opcode = 4'b1101; #10;
+        check_ctrl(2'b00, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, test_id);
+        test_id = test_id +1 ;
+
 
 
         $display("");

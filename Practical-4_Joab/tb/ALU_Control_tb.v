@@ -34,6 +34,8 @@ module ALU_Control_tb;
     integer fail_count;
     integer test_id;
 
+    integer i;
+
     task check_cnt;
         input [2:0] got;
         input [2:0] expected;
@@ -67,10 +69,10 @@ module ALU_Control_tb;
         //       check_cnt(ALU_Cnt, 3'b000, test_id); test_id=test_id+1;
 
         ALUOp = 2'b10; Opcode = 4'h0; #10;
-        check_cnt(ALU_Cnt,3'b000,test_id);
+        check_cnt(ALU_Cnt,3'b000,test_id); test_id = test_id +1;
 
         ALUOp = 2'b10; Opcode = 4'hF; #10;
-        check_cnt(ALU_Cnt,3'b000,test_id);
+        check_cnt(ALU_Cnt,3'b000,test_id); test_id = test_id +1;
 
 
         // ------------------------------------------------------------------
@@ -80,6 +82,12 @@ module ALU_Control_tb;
 
         // TODO: Apply ALUOp=2'b01 with several opcode values and verify
         //       ALU_Cnt is always 3'b001 (SUB).
+
+        ALUOp = 2'b01; Opcode = 4'h0; #10;
+        check_cnt(ALU_Cnt,3'b001,test_id); test_id = test_id +1;
+
+        ALUOp = 2'b01; Opcode = 4'hF; #10;
+        check_cnt(ALU_Cnt,3'b001,test_id); test_id = test_id +1;
 
 
         // ------------------------------------------------------------------
@@ -102,6 +110,12 @@ module ALU_Control_tb;
         //       check_cnt(ALU_Cnt, 3'b000, test_id); test_id=test_id+1;
         //       ... etc.
 
+        ALUOp = 2'b00;
+        for (i = 2; i<=9; i = i + 1) begin
+            Opcode = i; #10;
+            check_cnt(ALU_Cnt,i-2,test_id); test_id = test_id +1;
+        end
+
 
         // ------------------------------------------------------------------
         // Default case
@@ -110,6 +124,10 @@ module ALU_Control_tb;
 
         // TODO: Apply ALUOp=2'b00 with an undefined opcode (e.g. 4'hA or 4'hF)
         //       and verify ALU_Cnt defaults to 3'b000.
+        ALUOp = 2'b00; Opcode = 4'hA; #10;
+        check_cnt(ALU_Cnt,3'b000,test_id); test_id = test_id +1;
+
+
 
 
         $display("");

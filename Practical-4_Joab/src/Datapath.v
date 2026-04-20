@@ -2,10 +2,10 @@
 // Practical 4: StarCore-1 — Single-Cycle Processor in Verilog
 // =========================================================================
 //
-// GROUP NUMBER:
+// GROUP NUMBER: 7
 //
 // MEMBERS:
-//   - Member 1 Name, Student Number
+//   - Member 1 Joab Gray Kloppers, KLPJOA002
 //   - Member 2 Name, Student Number
 
 // File        : Datapath.v
@@ -116,6 +116,16 @@ module Datapath (
     //
     // TODO: Compute pc2 = pc_current + 16'd2 using a continuous assignment.
 
+    initial begin
+        pc_current <= 16'd0;
+    end
+
+    always @(posedge clk) begin
+        pc_current <= pc_next;        
+    end
+
+    assign pc2 = pc_current + 16'd2;
+
 
     // =========================================================================
     // 2. INSTRUCTION MEMORY
@@ -132,6 +142,11 @@ module Datapath (
     // TODO: Drive the opcode output from the fetched instruction:
     //       assign opcode = instr[15:12];
 
+    InstructionMemory im (
+        .pc (pc_current),
+        .instruction (instr)
+    );
+    assign opcode = instr[15:12];
 
     // =========================================================================
     // 3. REGISTER FILE WRITE-ADDRESS MULTIPLEXER (RegDst)
@@ -146,6 +161,10 @@ module Datapath (
     // TODO: Assign the read addresses from the instruction fields:
     //       assign reg_read_addr_1 = instr[11:9];  // RS1
     //       assign reg_read_addr_2 = instr[8:6];   // RS2
+    assign reg_write_dest = reg_dst ? instr[5:3] : instr[8:6];
+
+    assign reg_read_addr_1 = instr[11:9];
+    assign reg_read_addr_2 = instr[8:6];
 
 
     // =========================================================================
@@ -165,6 +184,17 @@ module Datapath (
     //           .reg_read_data_2  (reg_read_data_2)
     //       );
 
+    GPR reg_file (
+        .clk              (clk),
+        .reg_write_en     (reg_write),
+        .reg_write_dest   (reg_write_dest),
+        .reg_write_data   (reg_write_data),
+        .reg_read_addr_1  (reg_read_addr_1),
+        .reg_read_data_1  (reg_read_data_1),
+        .reg_read_addr_2  (reg_read_addr_2),
+        .reg_read_data_2  (reg_read_data_2)
+    );
+
 
     // =========================================================================
     // 5. IMMEDIATE SIGN-EXTENSION
@@ -180,7 +210,7 @@ module Datapath (
     //         {10{instr[5]}} replicates the sign bit 10 times (bits 15:6)
     //         instr[5:0]     is the original 6-bit value (bits 5:0)
     //         Together they form a 16-bit sign-extended immediate.
-
+    assign ext_im = { {10{instr[5]}}, instr[5:0] };
 
     // =========================================================================
     // 6. ALUSrc MULTIPLEXER
@@ -190,6 +220,8 @@ module Datapath (
     // =========================================================================
 
     // TODO: assign alu_operand_b = alu_src ? ext_im : reg_read_data_2;
+
+    assign alu_operand_b = alu_src ? ext_im : reg_read_data_2;
 
 
     // =========================================================================
@@ -204,6 +236,11 @@ module Datapath (
     //           .ALU_Cnt (alu_control)
     //       );
 
+    ALU_Control alu_ctrl (
+        .ALUOp (alu_op),
+        .Opcode (instr[15:12]),
+        .ALU_Cnt (alu_control)
+    );
 
     // =========================================================================
     // 8. ALU
@@ -218,6 +255,14 @@ module Datapath (
     //           .result      (alu_result),
     //           .zero        (zero_flag)
     //       );
+
+    ALU alu_unit (
+        .a (reg_read_data_1),
+        .b (alu_operand_b),
+        .alu_control (alu_control),
+        .result (alu_result),
+        .zero (zero_flag)
+    );
 
 
     // =========================================================================
@@ -255,6 +300,15 @@ module Datapath (
     //       with the shifted offset, limiting jumps to within the same
     //       8 KB aligned region. This matches the StarCore ISA specification.
 
+    assign pc_branch = pc2 + {ext_im[14:0], 1'b0};
+    assign beq_taken = beq & zero_flag;
+    assign bne_taken = bne & ~zero_flag;
+    assign pc_after_branch = (beq_taken | bne_taken) ? pc_branch : pc2;
+    assign jump_target = {instr[11:0], 1'b0};
+    assign pc_jump = {pc2[15:13], jump_target};
+    assign pc_next = jump ? pc_jump : pc_after_branch;
+
+
 
     // =========================================================================
     // 10. DATA MEMORY
@@ -273,6 +327,14 @@ module Datapath (
     //           .mem_read_data   (mem_read_data)
     //       );
 
+    DataMemory dm (
+        .clk (clk),
+        .mem_access_addr (alu_result),
+        .mem_write_data (reg_read_data_2),
+        .mem_write_en (mem_write),
+        .mem_read (mem_read),
+        .mem_read_data (mem_read_data)
+    );
 
     // =========================================================================
     // 11. WRITE-BACK MULTIPLEXER (MemToReg)
@@ -282,6 +344,8 @@ module Datapath (
     // =========================================================================
 
     // TODO: assign reg_write_data = mem_to_reg ? mem_read_data : alu_result;
+
+    assign reg_write_data = mem_to_reg ? mem_read_data : alu_result;
 
 
 endmodule
