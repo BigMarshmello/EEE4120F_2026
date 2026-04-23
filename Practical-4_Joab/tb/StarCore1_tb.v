@@ -224,7 +224,7 @@ module StarCore1_tb;
          test_id = test_id + 1;
 
          $display("Checking PC at end of code, where last op is jump to 0x0040, expect PC=0x0040. Only Successful if both branch operations succeed");
-         check16(uut.DU.pc_current, 16'h0042, test_id);
+         check16(uut.DU.pc_current, 16'h0040, test_id);
          test_id = test_id + 1;
 
         // -----------------------------------------------------------------------

@@ -53,7 +53,7 @@ module Datapath (
     input  [1:0] alu_op,        // ALU operation class for ALU_Control
 
     // --- Output to ControlUnit -----------------------------------------------
-    output [3:0] opcode         // Instruction opcode field [15:12]
+    output [3:0] opcode         // Instruction opcode field [15:12] 
 );
 
     // =========================================================================
