@@ -1,20 +1,23 @@
 // =========================================================================
-// Practical 4: StarCore-1 — Single-Cycle Processor in Verilog
+// EEE4120F HPES Project: VSS (Vectorized Signal Star)
 // =========================================================================
 //
 // GROUP NUMBER: 7
 //
 // MEMBERS:
 //   - Member 1 Joab Gray Kloppers, KLPJOA002
-//   - Member 2 Name, Student Number
+//   - Member 2 Alex Hillman, HLLALE010
 
 // File        : Datapath.v
-// Description : StarCore-1 Datapath.
-//               Integrates all sub-components (Tasks 1–6) and implements the
-//               full data-flow of the processor. Control signals arrive from
-//               an external ControlUnit module (instantiated in StarCore1.v).
-//               The opcode of the current instruction is exposed as an output
-//               so the ControlUnit can decode it.
+// Description : StarCore-1 Datapath, extended for VSS.
+//               Three changes from the Practical 4 baseline:
+//                 1. New input port: vector_mode (from ControlUnit)
+//                 2. ALU_Control now receives instr[2:0] as the funct field
+//                    so the vector operation can be decoded.
+//                 3. ALU now receives vector_mode so it can operate in
+//                    SIMD-lite 2 x 8-bit lane-split mode.
+//               All other signal routing is preserved.
+// 
 //
 //               Internal structure (in order of data flow):
 //               1.  Program Counter (PC) register
@@ -51,6 +54,7 @@ module Datapath (
     input        mem_to_reg,    // 0 = ALU result; 1 = memory read data
     input        reg_write,     // Enable register file write (posedge clk)
     input  [1:0] alu_op,        // ALU operation class for ALU_Control
+    input        vector_mode,    // NEW: 1 = ALU operates in SIMD-lite mode
 
     // --- Output to ControlUnit -----------------------------------------------
     output [3:0] opcode         // Instruction opcode field [15:12] 
@@ -239,6 +243,7 @@ module Datapath (
     ALU_Control alu_ctrl (
         .ALUOp (alu_op),
         .Opcode (instr[15:12]),
+        .funct   (instr[2:0]), // NEW: VSS funct field
         .ALU_Cnt (alu_control)
     );
 
@@ -260,6 +265,7 @@ module Datapath (
         .a (reg_read_data_1),
         .b (alu_operand_b),
         .alu_control (alu_control),
+        .vector_mode (vector_mode), // NEW: VSS mode select
         .result (alu_result),
         .zero (zero_flag)
     );

@@ -1,18 +1,19 @@
 // =========================================================================
-// Practical 4: StarCore-1 — Single-Cycle Processor in Verilog
+// EEE4120F HPES Project: VSS (Vectorized Signal Star)
 // =========================================================================
 //
 // GROUP NUMBER: 7
 //
 // MEMBERS:
 //   - Member 1 Joab Gray Kloppers, KLPJOA002
-//   - Member 2 Name, Student Number
+//   - Member 2 Alex Hillman, HLLALE010
 
 // File        : StarCore1.v
-// Description : Top-level StarCore-1 processor module.
+// Description : Top-level StarCore-1 processor module, extended for VSS.
 //               Connects the Datapath and ControlUnit together.
-//               The only external input is the clock signal; all internal
-//               signals flow between the two sub-modules via wires.
+//               Adds a single new internal wire (vector_mode) routed from
+//               the ControlUnit to the Datapath, enabling SIMD-lite ALU
+//               operation when the VECTOR opcode is decoded.
 //
 // Task 8 — Student Implementation Required
 // =============================================================================
@@ -55,6 +56,7 @@ module StarCore1 (
     wire        reg_write;
     wire [1:0]  alu_op;
     wire [3:0]  opcode;
+    wire        vector_mode;   // NEW: VSS — routed from ControlUnit to Datapath
 
 
     // =========================================================================
@@ -92,6 +94,7 @@ module StarCore1 (
         .mem_to_reg (mem_to_reg),
         .reg_write  (reg_write),
         .alu_op     (alu_op),
+        .vector_mode (vector_mode),  // NEW
         .opcode     (opcode)
     );
 
@@ -129,7 +132,8 @@ module StarCore1 (
         .alu_src    (alu_src),
         .reg_dst    (reg_dst),
         .mem_to_reg (mem_to_reg),
-        .reg_write  (reg_write)
+        .reg_write  (reg_write),
+        .vector_mode (vector_mode)   // NEW
     );
 
 

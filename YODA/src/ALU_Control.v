@@ -1,18 +1,26 @@
 // =========================================================================
-// Practical 4: StarCore-1 — Single-Cycle Processor in Verilog
+// EEE4120F HPES Project: VSS (Vectorized Signal Star)
 // =========================================================================
 //
 // GROUP NUMBER: 7
 //
 // MEMBERS:
 //   - Member 1 Joab Gray Kloppers, KLPJOA002
-//   - Member 2 Name, Student Number
+//   - Member 2 Alex Hillman, HLLALE010
 
 // File        : ALU_Control.v
-// Description : ALU Control Unit.
-//               Maps the 2-bit ALUOp signal (from the Main Control Unit) and
-//               the 4-bit instruction opcode to the 3-bit ALUcnt signal that
-//               drives the ALU's operation select input.
+// Description : ALU Control Unit, extended for VSS.
+//
+//               Maps ALUOp (from the Main Control Unit), the 4-bit opcode,
+//               and (for vector instructions) the instruction funct field
+//               to the 3-bit ALU_Cnt that drives the ALU's operation select.
+//
+//               ALUOp encodings:
+//                 2'b10 (ALUOP_MEM)    -> always ADD (LD/ST address)
+//                 2'b01 (ALUOP_BRANCH) -> always SUB (branch compare)
+//                 2'b00 (ALUOP_RTYPE)  -> decoded from opcode
+//                 2'b11 (ALUOP_VECTOR) -> NEW (VSS): pass funct[2:0] through
+//
 //               This is a purely combinational module.
 //
 // Task 5 — Student Implementation Required
@@ -27,6 +35,7 @@ module ALU_Control (
                                 //   2'b01 = branch      (always SUB for comparison)
                                 //   2'b00 = R-type      (decode from opcode)
     input  [3:0] Opcode,        // Instruction opcode field [15:12]
+    input  [2:0] funct,         // NEW: Instruction funct field [2:0]
     output reg [2:0] ALU_Cnt    // To ALU alu_control input
 );
 
@@ -71,6 +80,14 @@ module ALU_Control (
 
     always @(*) begin
         casex (control_in)
+
+            // VSS extension: vector mode passes the instruction's [2:0] funct
+            // field straight through. Because VFUNC reuses the ALU's 3-bit
+            // operation encoding, the ALU sees the right alu_control value
+            // (combined with vector_mode = 1 from the ControlUnit) directly.
+            6'b11xxxx : ALU_Cnt = funct;
+            
+            // Practical 4 unchanged code
             6'b10xxxx : ALU_Cnt = 3'b000;
             6'b01xxxx : ALU_Cnt = 3'b001;
             6'b000010 : ALU_Cnt = 3'b000;
