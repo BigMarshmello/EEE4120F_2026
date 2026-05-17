@@ -58,6 +58,11 @@ module Datapath (
 
     // --- Output to ControlUnit -----------------------------------------------
     output [3:0] opcode         // Instruction opcode field [15:12] 
+
+    // --- MEMIO ----------------------------------------------------------------
+    input        rst_n,          // Add reset if your system uses one
+    input  [15:0] gpio_in,        // NEW: physical inputs
+    output [15:0] gpio_out,
 );
 
     // =========================================================================
@@ -100,6 +105,8 @@ module Datapath (
 
     // --- Data memory ----------------------------------------------------------
     wire [15:0] mem_read_data;          // Data read from memory
+
+
 
 
     // =========================================================================
@@ -317,7 +324,7 @@ module Datapath (
 
 
     // =========================================================================
-    // 10. DATA MEMORY
+    // 10. DATA MEMORY AND IO
     // =========================================================================
 
     // TODO: Instantiate the DataMemory module.
@@ -333,13 +340,36 @@ module Datapath (
     //           .mem_read_data   (mem_read_data)
     //       );
 
+    wire [15:0] ram_read_data;
+    wire [15:0] gpio_read_data;
+    wire        ram_write_en;
+    wire        gpio_write_en;
+
+    // Traffic Cop: Route write enable based on ALU address
+    assign ram_write_en  = (alu_result <= 16'h0007) ? mem_write : 1'b0;
+    assign gpio_write_en = (alu_result == 16'h1000) ? mem_write : 1'b0;
+
+    // Return Multiplexer: Select which data goes back to the MemToReg mux
+    wire [15:0] combined_mem_read_data;
+    assign combined_mem_read_data = (alu_result == 16'h1000) ? gpio_read_data : ram_read_data;
+
     DataMemory dm (
         .clk (clk),
         .mem_access_addr (alu_result),
         .mem_write_data (reg_read_data_2),
-        .mem_write_en (mem_write),
+        .mem_write_en (ram_write_en),
         .mem_read (mem_read),
-        .mem_read_data (mem_read_data)
+        .mem_read_data (ram_read_data)
+    );
+
+    IOMEM gpio_unit (
+        .clk             (clk),
+        .rst_n           (rst_n),
+        .write_en        (gpio_write_en),    // Gated by traffic cop
+        .write_data      (reg_read_data_2),  // RS2 has the store data
+        .read_data       (gpio_read_data),   // Goes to return mux
+        .gpio_out        (gpio_out),         // Out to top level
+        .gpio_in         (gpio_in)           // In from top level
     );
 
     // =========================================================================
@@ -351,7 +381,8 @@ module Datapath (
 
     // TODO: assign reg_write_data = mem_to_reg ? mem_read_data : alu_result;
 
-    assign reg_write_data = mem_to_reg ? mem_read_data : alu_result;
+    //assign reg_write_data = mem_to_reg ? mem_read_data : alu_result;
+    assign reg_write_data = mem_to_reg ? combined_mem_read_data : alu_result;
 
 
 endmodule

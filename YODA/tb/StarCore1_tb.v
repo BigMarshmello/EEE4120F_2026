@@ -58,7 +58,17 @@ module StarCore1_tb;
     // -------------------------------------------------------------------------
     // DUT instantiation
     // -------------------------------------------------------------------------
-    StarCore1 uut (.clk(clk));
+    //reg        clk;
+    reg        rst_n;       // NEW: Reset signal
+    reg  [7:0] gpio_in;     // NEW: Fake input from outside world
+    wire [7:0] gpio_out;    // NEW: Output to outside world
+
+    StarCore1 uut (
+        .clk      (clk),
+        .rst_n    (rst_n),    // NEW
+        .gpio_in  (gpio_in),  // NEW
+        .gpio_out (gpio_out)  // NEW
+    );
 
     // -------------------------------------------------------------------------
     // Waveform dump — captures ALL signals in the design hierarchy
@@ -143,6 +153,20 @@ module StarCore1_tb;
     // MAIN STIMULUS BLOCK
     // =========================================================================
     initial begin
+
+        // Initialize the new signals
+        rst_n = 0;              // Hold processor in reset
+        gpio_in = 8'b10101010;  // 0xAA: Fake starting input from sensors/buttons
+
+        // Wait a few clock cycles, then release reset to start the CPU
+        #15 rst_n = 1;
+
+        // Optional: Change the GPIO input halfway through the simulation
+        // to test if the CPU can read the changing environment.
+        #100 gpio_in = 8'b01010101; // 0x55
+
+        // ... rest of your existing testbench logic ...
+
         $display("=== StarCore-1 Integration Testbench ===");
         $display("=== Program loaded from ./test/test.prog ===");
         $display("=== Data memory loaded from ./test/test.data ===");
@@ -256,6 +280,13 @@ module StarCore1_tb;
             $display("=== ALL %0d INTEGRATION TESTS PASSED ===", test_id - 1);
         else
             $display("=== %0d / %0d INTEGRATION TESTS FAILED ===", fail_count, test_id - 1);
+
+        $display("");
+        $display("--- Final GPIO State ---");
+        $display("GPIO IN Pins  = 0x%h", gpio_in);
+        $display("GPIO OUT Pins = 0x%h", gpio_out);
+        // You can also peek directly into the hardware like you did with RAM!
+        // $display("GPIO OUT Reg  = 0x%h", uut.DU.gpio_unit.gpio_out_reg);
 
         $finish;
     end

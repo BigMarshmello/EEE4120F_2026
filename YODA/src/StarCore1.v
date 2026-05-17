@@ -23,6 +23,9 @@
 
 module StarCore1 (
     input clk       // System clock — drives both the Datapath and GPR/DataMemory
+    input  wire       rst_n,      // Add if you are using reset
+    input  wire [15:0] gpio_in,    // NEW: Board pins
+    output wire [15:0] gpio_out    // NEW: Board pins
 );
 
     // =========================================================================
@@ -84,6 +87,9 @@ module StarCore1 (
 
     Datapath DU (
         .clk        (clk),
+        .rst_n      (rst_n),
+        .gpio_in    (gpio_in),   // Route down to Datapath
+        .gpio_out   (gpio_out),  // Route up from Datapath
         .jump       (jump),
         .beq        (beq),
         .bne        (bne),
