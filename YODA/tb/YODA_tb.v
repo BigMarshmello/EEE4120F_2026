@@ -76,7 +76,7 @@ module StarCore1_tb;
     //       internal signals (pc_current, instr, etc.) do not yet exist.
     // -------------------------------------------------------------------------
     always @(posedge clk) begin
-        $display("%0t ns | PC=0x%h | instr=%b | R0=%3d R1=%3d R2=%3d R3=%3d | alu=%0d z=%b",
+        $display("%0t ns | PC=0x%h | instr=%b | R0=%3d R1=%3d R2=%3d R3=%3d R4=%3d R5=%3d R6=%3d R7=%3d | alu=%0d z=%b",
             $time,
             uut.DU.pc_current,
             uut.DU.instr,
@@ -84,6 +84,10 @@ module StarCore1_tb;
             uut.DU.reg_file.reg_array[1],
             uut.DU.reg_file.reg_array[2],
             uut.DU.reg_file.reg_array[3],
+            uut.DU.reg_file.reg_array[4],
+            uut.DU.reg_file.reg_array[5],
+            uut.DU.reg_file.reg_array[6],
+            uut.DU.reg_file.reg_array[7],
             uut.DU.alu_result,
             uut.DU.zero_flag
         );
@@ -128,9 +132,9 @@ module StarCore1_tb;
         check16(uut.DU.reg_file.reg_array[1], 16'h0001, test_id);
         test_id = test_id + 1;
 
-        // ADD R3, R1, R1
-        $display("Checking R3 after ADD (should be 0x0001 + 0x0001 = 0x0002):");
-        check16(uut.DU.reg_file.reg_array[3], 16'h0002, test_id);
+        // ADD R6, R1, R1
+        $display("Checking R6 after ADD (should be 0x0001 + 0x0001 = 0x0002):");
+        check16(uut.DU.reg_file.reg_array[6], 16'h0002, test_id);
         test_id = test_id + 1;
 
         
@@ -143,9 +147,29 @@ module StarCore1_tb;
         check16(uut.DU.reg_file.reg_array[2], 16'h0004, test_id);
         test_id = test_id + 1;
 
-        // ADD R4, R1, R2
-        $display("Checking R3 after ADD (should be 0x0004 + 0x0001 = 0x0005):");
+        // ADD R3, R1, R2
+        $display("Checking R4 after ADD (should be 0x0004 + 0x0001 = 0x0005):");
         check16(uut.DU.reg_file.reg_array[3], 16'h0005, test_id);
+        test_id = test_id + 1;
+
+        // LDD mem[1], R4
+        $display("Checking R4 after LD (should be 0x0180):");
+        check16(uut.DU.reg_file.reg_array[4], 16'h0180, test_id);
+        test_id = test_id + 1;
+
+        // LDD mem[1], R4
+        $display("Checking R5 after VADD (should be 0x0200):");
+        check16(uut.DU.reg_file.reg_array[5], 16'h0200, test_id);
+        test_id = test_id + 1;
+        
+        // LDD mem[1], R4
+        $display("Checking R7 after VSHR (should be 0x0140):");
+        check16(uut.DU.reg_file.reg_array[7], 16'h0140, test_id);
+        test_id = test_id + 1;
+
+        // LDD mem[1], R4
+        $display("Checking GPIO_OUT after ST (should be 0x0200):");
+        check16(gpio_out, 16'h0200, test_id);
         test_id = test_id + 1;
 
         // -----------------------------------------------------------------------
