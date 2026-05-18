@@ -57,12 +57,12 @@ module Datapath (
     input        vector_mode,    // NEW: 1 = ALU operates in SIMD-lite mode
 
     // --- Output to ControlUnit -----------------------------------------------
-    output [3:0] opcode         // Instruction opcode field [15:12] 
+    output [3:0] opcode,         // Instruction opcode field [15:12] 
 
     // --- MEMIO ----------------------------------------------------------------
     input        rst_n,          // Add reset if your system uses one
     input  [15:0] gpio_in,        // NEW: physical inputs
-    output [15:0] gpio_out,
+    output [15:0] gpio_out
 );
 
     // =========================================================================
@@ -347,11 +347,11 @@ module Datapath (
 
     // Traffic Cop: Route write enable based on ALU address
     assign ram_write_en  = (alu_result <= 16'h0007) ? mem_write : 1'b0;
-    assign gpio_write_en = (alu_result == 16'h1000) ? mem_write : 1'b0;
+    assign gpio_write_en = (alu_result == 16'h0008) ? mem_write : 1'b0;
 
     // Return Multiplexer: Select which data goes back to the MemToReg mux
     wire [15:0] combined_mem_read_data;
-    assign combined_mem_read_data = (alu_result == 16'h1000) ? gpio_read_data : ram_read_data;
+    assign combined_mem_read_data = (alu_result == 16'h0008) ? gpio_read_data : ram_read_data;
 
     DataMemory dm (
         .clk (clk),

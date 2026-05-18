@@ -6,7 +6,7 @@
 //
 // MEMBERS:
 //   - Member 1 Joab Gray Kloppers, KLPJOA001
-//   - Member 2 Name, Student Number
+//   - Member 2 Justin Heathcote-Marks, HTHJUS001
 //   - Member 3 Name, Student Number
 
 // File        : IOR.v

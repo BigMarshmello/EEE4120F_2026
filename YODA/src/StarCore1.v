@@ -22,7 +22,7 @@
 `include "../src/Parameter.v"
 
 module StarCore1 (
-    input clk       // System clock — drives both the Datapath and GPR/DataMemory
+    input clk,       // System clock — drives both the Datapath and GPR/DataMemory
     input  wire       rst_n,      // Add if you are using reset
     input  wire [15:0] gpio_in,    // NEW: Board pins
     output wire [15:0] gpio_out    // NEW: Board pins
