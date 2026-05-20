@@ -1,0 +1,85 @@
+==================== ALU_tb ====================
+VCD info: dumpfile ALU_tb.vcd opened for output.
+=================================================================
+ VSS ALU Golden-Measure Test          Group 7 (KLPJOA002, HLLALE010)
+=================================================================
+
+--- Scalar mode (16-bit, baseline) ---
+  [1] PASS  ADD-carry     mode=0 op=000  a=00ff b=0001  result=0100  (expected 0100)
+  [2] PASS  SUB-borrow    mode=0 op=001  a=0100 b=0001  result=00ff  (expected 00ff)
+  [3] PASS  SHL4          mode=0 op=011  a=0fff b=0004  result=fff0  (expected fff0)
+  [4] PASS  SLT-true      mode=0 op=111  a=0005 b=000a  result=0001  (expected 0001)
+
+--- Vector mode (2 x 8-bit lanes, VSS) ---
+  [5] PASS  VADD-basic    mode=1 op=000  a=0a05 b=2007  result=2a0c  (expected 2a0c)
+  [6] PASS  VADD-nocarry  mode=1 op=000  a=10ff b=0001  result=1000  (expected 1000)
+  [7] PASS  VSUB-basic    mode=1 op=001  a=8010 b=4002  result=400e  (expected 400e)
+  [8] PASS  VSUB-noborrow  mode=1 op=001  a=2000 b=1001  result=10ff  (expected 10ff)
+  [9] PASS  VAND          mode=1 op=101  a=f0f0 b=0fff  result=00f0  (expected 00f0)
+  [10] PASS  VOR           mode=1 op=110  a=f000 b=00f0  result=f0f0  (expected f0f0)
+  [11] PASS  VSLT-mix      mode=1 op=111  a=05ff b=1001  result=0100  (expected 0100)
+  [12] PASS  VSHL          mode=1 op=011  a=0103 b=0201  result=0406  (expected 0406)
+  [13] PASS  VSHR          mode=1 op=100  a=8040 b=0201  result=2020  (expected 2020)
+  [14] PASS  VINV          mode=1 op=010  a=aa55 b=0000  result=55aa  (expected 55aa)
+
+=================================================================
+ Results: 14 PASS, 0 FAIL  (out of 14 tests)
+ *** GOLDEN MEASURE MATCH — VSS ALU verified ***
+=================================================================
+ALU_tb.v:161: $finish called at 42000 (1ps)
+
+==================== ALU_Control_tb ====================
+VCD info: dumpfile ALU_Control_tb.vcd opened for output.
+=================================================================
+ VSS ALU_Control Golden Measure       Group 7
+=================================================================
+
+--- Baseline ALUOp decoding (unchanged from P4) ---
+  [1] PASS  LD-addr         ALUOp=10 Op=0000 funct=000 -> 000
+  [2] PASS  ST-addr         ALUOp=10 Op=0001 funct=000 -> 000
+  [3] PASS  BEQ-cmp         ALUOp=01 Op=1011 funct=000 -> 001
+  [4] PASS  BNE-cmp         ALUOp=01 Op=1100 funct=000 -> 001
+  [5] PASS  R-ADD           ALUOp=00 Op=0010 funct=000 -> 000
+  [6] PASS  R-SUB           ALUOp=00 Op=0011 funct=000 -> 001
+  [7] PASS  R-INV           ALUOp=00 Op=0100 funct=000 -> 010
+  [8] PASS  R-SLT           ALUOp=00 Op=1001 funct=000 -> 111
+
+--- VSS extension (ALUOp=11, funct -> ALU_Cnt) ---
+  [9] PASS  VADD-funct      ALUOp=11 Op=1110 funct=000 -> 000
+  [10] PASS  VSUB-funct      ALUOp=11 Op=1110 funct=001 -> 001
+  [11] PASS  VINV-funct      ALUOp=11 Op=1110 funct=010 -> 010
+  [12] PASS  VSHL-funct      ALUOp=11 Op=1110 funct=011 -> 011
+  [13] PASS  VSHR-funct      ALUOp=11 Op=1110 funct=100 -> 100
+  [14] PASS  VAND-funct      ALUOp=11 Op=1110 funct=101 -> 101
+  [15] PASS  VOR-funct       ALUOp=11 Op=1110 funct=110 -> 110
+  [16] PASS  VSLT-funct      ALUOp=11 Op=1110 funct=111 -> 111
+
+=================================================================
+ Results: 16 PASS, 0 FAIL  (out of 16 tests)
+=================================================================
+ALU_Control_tb.v:85: $finish called at 16000 (1ps)
+
+==================== ControlUnit_tb ====================
+VCD info: dumpfile ControlUnit_tb.vcd opened for output.
+=================================================================
+ VSS ControlUnit Golden Measure       Group 7
+=================================================================
+
+  Bundle bits = {reg_dst, alu_src, mem_to_reg, reg_write,
+                 mem_read, mem_write, beq, bne, alu_op[1:0],
+                 jump, vector_mode}
+
+  [1] PASS  LD          op=0000  ctrl=011110001000
+  [2] PASS  ST          op=0001  ctrl=010001001000
+  [3] PASS  ADD         op=0010  ctrl=100100000000
+  [4] PASS  SLT         op=1001  ctrl=100100000000
+  [5] PASS  RSVD        op=1010  ctrl=000000000000
+  [6] PASS  BEQ         op=1011  ctrl=000000100100
+  [7] PASS  BNE         op=1100  ctrl=000000010100
+  [8] PASS  JMP         op=1101  ctrl=000000000010
+  [9] PASS  VECTOR      op=1110  ctrl=100100001101
+
+=================================================================
+ Results: 9 PASS, 0 FAIL  (out of 9 tests)
+=================================================================
+ControlUnit_tb.v:92: $finish called at 9000 (1ps)
